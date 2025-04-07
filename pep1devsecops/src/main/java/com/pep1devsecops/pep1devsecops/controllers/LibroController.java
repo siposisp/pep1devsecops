@@ -67,4 +67,10 @@ public class LibroController {
         var isDeleted = libroService.deleteLibroByTitulo(titulo);
         return ResponseEntity.noContent().build();
     }
+
+    @GetMapping("/busqueda/")
+    public ResponseEntity<List<LibroEntity>> librosList(@RequestParam(value = "search", defaultValue = "") String search) {
+        List<LibroEntity> libros = libroService.buscarLibros(search);
+        return ResponseEntity.ok(libros);
+    }
 }
