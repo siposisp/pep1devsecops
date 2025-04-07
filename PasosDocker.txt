@@ -2,7 +2,7 @@
 
 BASE DE DATOS
 Paso 1: crear volumen de la base datos
-docker volume create mysql-db-data
+docker volume create pep1-db-data
 
 Paso 2: loguearse (si no estas logueado)
 docker login
