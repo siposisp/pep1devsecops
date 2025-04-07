@@ -1,0 +1,55 @@
+pipeline{
+    agent any
+    tools{
+        maven "maven"
+    }
+    stages{
+        stage("Build JAR File"){
+            steps{
+                checkout scmGit(branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/siposisp/pep1devsecops']])
+                dir("pep1devsecops"){
+                    sh "mvn clean install"
+                }
+            }
+        }
+        stage("Test"){
+            steps{
+                dir("pep1devsecops"){
+                    sh "mvn test"
+                }
+            }
+        }
+        stage("SonarQube Analysis"){
+            steps{
+                dir("pep1devsecops"){
+                    sh "mvn clean verify sonar:sonar  -Dsonar.projectKey=pep1  -Dsonar.projectName='pep1'  -Dsonar.host.url=http://localhost:9000  -Dsonar.token=sqp_3138995c40948c6017f9e7c0e0d598453c1e838d"
+                }
+            }
+        }
+        stage("Build Docker Image"){
+            steps{
+                dir("pep1devsecops"){
+                    sh "docker build -t niko085/pep1devsecops_backend ."
+                }
+            }
+        }
+        stage("Push Docker Image"){
+            steps{
+                dir("pep1devsecops"){
+                    withCredentials([string(credentialsId: 'dckrhubpassword', variable: 'dckpass')]) {
+                       sh "docker login -u derflinger -p ${dckpass}"
+                    sh "docker push -t niko085/pep1devsecops_backend"
+                    }
+                }
+
+            }
+        }
+    }
+    post{
+        always{
+            dir("pep1devsecops"){
+                sh "docker logout"
+            }
+        }
+    }
+}
