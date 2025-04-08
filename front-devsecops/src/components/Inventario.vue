@@ -8,7 +8,7 @@
     </div>
 
     <div class="body" align="center">
-      <h2>Inventario 2025</h2>
+      <h2>Inventario</h2>
 
       <!-- Búsqueda -->
       <div class="search-container">
