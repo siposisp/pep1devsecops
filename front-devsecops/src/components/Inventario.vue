@@ -75,7 +75,7 @@ export default {
     // Verificamos que los libros solo se asignen una vez
     if (this.libros.length === 0) {
       axios
-        .get('http://localhost:8080/libreria/')
+        .get('http://localhost:8081/libreria/')
         .then((response) => {
           // Asignamos los datos solo si no están ya en la variable
           this.libros = response.data;
@@ -91,7 +91,7 @@ export default {
       if (this.searchTerm.trim() === '') {
         // Si no hay término de búsqueda, obtenemos todos los libros
         axios
-          .get('http://localhost:8080/libreria/')
+          .get('http://localhost:8081/libreria/')
           .then((response) => {
             this.libros = response.data;
           })
@@ -101,7 +101,7 @@ export default {
       } else {
         // Si hay un término de búsqueda, filtramos los libros
         axios
-          .get(`http://localhost:8080/libreria/busqueda/?search=${this.searchTerm}`)
+          .get(`http://localhost:8081/libreria/busqueda/?search=${this.searchTerm}`)
           .then((response) => {
             this.libros = response.data;
           })
