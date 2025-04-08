@@ -3,7 +3,7 @@
     <div class="header">
       <div class="header-content" align="center">
         <h1>Librería García</h1>
-        <h3>Lee de noche, lee de día</h3>
+        <h3>-Lee de noche, lee de día-</h3>
       </div>
     </div>
 
@@ -12,10 +12,10 @@
 
       <!-- Búsqueda -->
       <div class="search-container">
-        <input 
-          v-model="searchTerm" 
-          type="text" 
-          placeholder="Buscar por título o autor" 
+        <input
+          v-model="searchTerm"
+          type="text"
+          placeholder="Buscar por título o autor"
           @input="searchBooks"
         />
       </div>
@@ -58,8 +58,8 @@ export default {
   name: 'Inventario',
   data() {
     return {
-      libros: [],        
-      searchTerm: '', 
+      libros: [],
+      searchTerm: '',
     };
   },
   computed: {
