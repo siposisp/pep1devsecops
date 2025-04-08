@@ -16,7 +16,7 @@ services:
     container_name: pep1devsecops_backend
     image: niko085/pep1devsecops_backend
     ports:
-      - "8080:8080"
+      - "8081:8081"
     environment:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-db:5432/dbdevsecops
       - SPRING_DATASOURCE_USERNAME=postgres
