@@ -8,6 +8,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 
@@ -83,5 +85,27 @@ public class LibroService {
             throw new Exception(e.getMessage());
         }
 
+    }
+
+    // --------------------------SEARCH--------------------------
+
+    // Método para buscar libros por diferentes campos
+    public List<LibroEntity> buscarLibros(String search) {
+        List<LibroEntity> libros = (List<LibroEntity>) libroRepository.findAll();  // Obtener todos los libros de la base de datos
+
+        if (search != null && !search.isEmpty()) {
+            // Filtrar libros por título, autor, descripción, etc.
+            libros = libros.stream()
+                    .filter(libro -> libro.getTitulo().toLowerCase().contains(search.toLowerCase()) ||
+                            libro.getAutor().toLowerCase().contains(search.toLowerCase()) ||
+                            libro.getDescripcion().toLowerCase().contains(search.toLowerCase()) ||
+                            String.valueOf(libro.getAnio()).contains(search) ||  // Conversión explícita a String
+                            String.valueOf(libro.getStock()).contains(search) ||  // Conversión explícita a String
+                            String.valueOf(libro.getPrecio()).contains(search)) // Conversión explícita a String
+                    .collect(Collectors.toList());
+
+        }
+
+        return libros;
     }
 }

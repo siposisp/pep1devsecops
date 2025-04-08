@@ -1,7 +1,7 @@
 <template>
   <section class="layout">
     <div class="header">
-      <div align="center">
+      <div class="header-content" align="center">
         <h1>Librería García</h1>
         <h3>Lee de noche, lee de día</h3>
       </div>
@@ -9,16 +9,18 @@
 
     <div class="body" align="center">
       <h2>Inventario</h2>
+
+      <!-- Búsqueda -->
+      <div class="search-container">
+        <input 
+          v-model="searchTerm" 
+          type="text" 
+          placeholder="Buscar por título o autor" 
+          @input="searchBooks"
+        />
+      </div>
+
       <v-table height="700px" fixed-header>
-        <!--
-        "id": 3,
-        "titulo": "1984",
-        "autor": "George Orwell",
-        "precio": 18000,
-        "stock": 12,
-        "anio": 1949,
-        "descripcion": "Distopía sobre el control gubernamental"
-        -->
         <thead class="color-cabeza-tabla">
           <tr>
             <th class="text-left">Título</th>
@@ -30,10 +32,7 @@
           </tr>
         </thead>
         <tbody>
-          <tr
-            v-for="item in libros"
-            :key="item.id"
-          >
+          <tr v-for="item in filteredLibros" :key="item.id">
             <td>{{ item.titulo }}</td>
             <td>{{ item.autor }}</td>
             <td>{{ item.descripcion }}</td>
@@ -45,10 +44,6 @@
       </v-table>
     </div>
 
-    <div class="rightSide">
-      <br>
-    </div>
-
     <div class="footer">
       <AppFooter />
     </div>
@@ -56,68 +51,135 @@
 </template>
 
 <script>
-  //usaremos axios para la conexión
-  import axios from 'axios';
+// Usamos axios para la conexión
+import axios from 'axios';
 
-  export default {
-    name: 'Inventario',
-    data: () => ({
-      libros: []
-    }),
-    mounted() {
+export default {
+  name: 'Inventario',
+  data() {
+    return {
+      libros: [],        
+      searchTerm: '', 
+    };
+  },
+  computed: {
+    // Filtra los libros según el término de búsqueda
+    filteredLibros() {
+      return this.libros.filter((libro) => {
+        const term = this.searchTerm.toLowerCase();
+        return libro.titulo.toLowerCase().includes(term) || libro.autor.toLowerCase().includes(term);
+      });
+    }
+  },
+  mounted() {
+    // Verificamos que los libros solo se asignen una vez
+    if (this.libros.length === 0) {
       axios
         .get('http://localhost:8080/libreria/')
-        .then(response => {
+        .then((response) => {
+          // Asignamos los datos solo si no están ya en la variable
           this.libros = response.data;
         })
-        .catch(error => {
-          console.log(error);
+        .catch((error) => {
+          console.error(error);
         });
-    }}
+    }
+  },
+  methods: {
+    // Filtra los libros cada vez que el usuario escribe en el campo de búsqueda
+    searchBooks() {
+      if (this.searchTerm.trim() === '') {
+        // Si no hay término de búsqueda, obtenemos todos los libros
+        axios
+          .get('http://localhost:8080/libreria/')
+          .then((response) => {
+            this.libros = response.data;
+          })
+          .catch((error) => {
+            console.error(error);
+          });
+      } else {
+        // Si hay un término de búsqueda, filtramos los libros
+        axios
+          .get(`http://localhost:8080/libreria/busqueda/?search=${this.searchTerm}`)
+          .then((response) => {
+            this.libros = response.data;
+          })
+          .catch((error) => {
+            console.error(error);
+          });
+      }
+    }
+  }
+};
 </script>
 
 <style scoped>
-  .layout {
-      width: 100%;
+.layout {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  grid-template-columns: auto 1fr auto;
+  gap: 8px;
+  width: 100%;
+}
 
-      display: grid;
-      grid:
-        "header header header" auto
-        "leftSide body rightSide" 1fr
-        "footer footer footer" auto
-        / auto 1fr auto;
-      gap: 8px;
-    }
+.header {
+  grid-column: 1 / -1;
+  background-color: #21946e6e;
+  color: #fff;
+  padding: 16px;
+}
 
-  .header { grid-area: header; }
-  .leftSide { grid-area: leftSide; }
-  .body { grid-area: body; }
-  .rightSide { grid-area: rightSide; }
-  .footer { grid-area: footer; }
+.body {
+  grid-column: 1 / -1;
+  align-self: center;
+}
 
-  .header {
-    background-color: #21946e6e;
-    color: #fff;
-    padding: 16px;
-  }
+.footer {
+  grid-column: 1 / -1;
+  padding: 16px;
+  background-color: #f1f1f1;
+}
 
-  .body {
-    align-self: center;
-  }
-  .v-table {
-    align-self: center;
-    max-width: 90%;
-    border-radius: 9px;
-  }
+.header-content {
+  text-align: center;
+}
 
-  h3{
-    color: #969696;
-    font-size: 18px;
-    font-weight: 400;
-  }
+h3 {
+  color: #969696;
+  font-size: 18px;
+  font-weight: 400;
+}
 
-  .color-cabeza-tabla{
-    background-color: #34f3b46e;
-    color: #fff;
-  }
+.search-container {
+  margin-bottom: 16px;
+}
+
+input[type="text"] {
+  padding: 8px;
+  font-size: 16px;
+  width: 300px;
+  margin-bottom: 16px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.v-table {
+  align-self: center;
+  max-width: 90%;
+  border-radius: 9px;
+}
+
+.color-cabeza-tabla {
+  background-color: #34f3b46e;
+  color: #fff;
+}
+
+th, td {
+  padding: 8px;
+}
+
+th {
+  text-align: left;
+}
 </style>
