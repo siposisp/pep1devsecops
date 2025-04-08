@@ -14,7 +14,7 @@ services:
 
   app:
     container_name: pep1devsecops_backend
-    image: niko085/pep1devsecops_backend
+    image: derflinger/pep1devsecops_backend
     ports:
       - "8081:8081"
     environment:
