@@ -1,0 +1,91 @@
+pipeline {
+    agent any
+    tools {
+        maven "maven"
+    }
+    stages {
+        stage("Checkout") {
+            steps {
+                checkout scmGit(branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/siposisp/pep1devsecops']])
+            }
+        }
+        stage("Build JAR File") {
+            steps {
+                dir("pep1devsecops") {
+                    bat "mvn clean install"
+                }
+            }
+        }
+        stage("Test Backend") {
+            steps {
+                dir("pep1devsecops") {
+                    bat "mvn test"
+                }
+            }
+        }
+        stage("Build Docker Image backend") {
+            steps {
+                dir("pep1devsecops") {
+                    bat "docker build -t derflinger/pep1devsecops_backend ."
+                }
+            }
+        }
+        stage("Push Docker Image backend") {
+            steps {
+                dir("pep1devsecops") {
+                    withCredentials([string(credentialsId: 'dckrhubpassword', variable: 'dckpass')]) {
+                        bat "docker login -u derflinger -p ${dckpass}"
+                        bat "docker push derflinger/pep1devsecops_backend"
+                    }
+                }
+            }
+        }
+        stage("Build Frontend"){
+            steps{
+                dir("front-devsecops"){
+                    bat "npm install"
+                    bat "npm run build"
+                }
+            }
+        }
+        stage("Build Docker Image frontend") {
+            steps {
+                dir("front-devsecops") {
+                    bat "docker build -t derflinger/front-devsecops ."
+                }
+            }
+        }
+        stage("Push Docker Image frontend") {
+            steps {
+                dir("front-devsecops") {
+                    withCredentials([string(credentialsId: 'dckrhubpassword', variable: 'dckpass')]) {
+                        bat "docker login -u derflinger -p ${dckpass}"
+                        bat "docker push derflinger/front-devsecops"
+                    }
+                }
+            }
+        }
+        stage("Deploy Backend with Docker Compose") {
+            steps {
+                dir("pep1devsecops") {
+                    bat "docker-compose down || exit 0"
+                    bat "docker-compose up -d --build"
+                }
+            }
+        }
+        stage("Deploy Frontend with Docker Compose") {
+            steps {
+                dir("front-devsecops") {
+                    bat "docker-compose down || exit 0"
+                    bat "docker-compose up -d --build"
+                }
+            }
+        }
+    }
+    post {
+        always {
+            bat "docker logout"
+
+        }
+    }
+}
