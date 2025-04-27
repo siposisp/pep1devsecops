@@ -141,6 +141,98 @@ class LibroServiceTest {
         assertEquals("Database error", exception.getMessage());
     }
 
+    @Test
+    void testBuscarLibros_CoincidenciaPorTitulo() {
+        List<LibroEntity> libros = new ArrayList<>();
+        libros.add(libro);
+        when(libroRepository.findAll()).thenReturn(libros);
+
+        List<LibroEntity> resultados = libroService.buscarLibros("Hobbit");
+
+        assertEquals(1, resultados.size());
+        assertEquals("El Hobbit", resultados.get(0).getTitulo());
+    }
+
+    @Test
+    void testBuscarLibros_CoincidenciaPorAutor() {
+        List<LibroEntity> libros = new ArrayList<>();
+        libros.add(libro);
+        when(libroRepository.findAll()).thenReturn(libros);
+
+        List<LibroEntity> resultados = libroService.buscarLibros("Tolkien");
+
+        assertEquals(1, resultados.size());
+        assertEquals("J.R.R. Tolkien", resultados.get(0).getAutor());
+    }
+
+    @Test
+    void testBuscarLibros_CoincidenciaPorDescripcion() {
+        List<LibroEntity> libros = new ArrayList<>();
+        libros.add(libro);
+        when(libroRepository.findAll()).thenReturn(libros);
+
+        List<LibroEntity> resultados = libroService.buscarLibros("fantasía");
+
+        assertEquals(1, resultados.size());
+        assertEquals("Una novela de fantasía", resultados.get(0).getDescripcion());
+    }
+
+    @Test
+    void testBuscarLibros_CoincidenciaPorAnio() {
+        List<LibroEntity> libros = new ArrayList<>();
+        libros.add(libro);
+        when(libroRepository.findAll()).thenReturn(libros);
+
+        List<LibroEntity> resultados = libroService.buscarLibros("1937");
+
+        assertEquals(1, resultados.size());
+        assertEquals(1937, resultados.get(0).getAnio());
+    }
+
+    @Test
+    void testBuscarLibros_CoincidenciaPorStock() {
+        List<LibroEntity> libros = new ArrayList<>();
+        libros.add(libro);
+        when(libroRepository.findAll()).thenReturn(libros);
+
+        List<LibroEntity> resultados = libroService.buscarLibros("10");
+
+        assertEquals(1, resultados.size());
+        assertEquals(10, resultados.get(0).getStock());
+    }
+
+    @Test
+    void testBuscarLibros_SinCoincidencias() {
+        List<LibroEntity> libros = new ArrayList<>();
+        libros.add(libro);
+        when(libroRepository.findAll()).thenReturn(libros);
+        List<LibroEntity> resultados = libroService.buscarLibros("Harry Potter");
+
+        assertEquals(0, resultados.size());
+    }
+
+    @Test
+    void testBuscarLibros_SearchNull() {
+        List<LibroEntity> libros = new ArrayList<>();
+        libros.add(libro);
+        when(libroRepository.findAll()).thenReturn(libros);
+
+        List<LibroEntity> resultados = libroService.buscarLibros(null);
+
+        assertEquals(1, resultados.size());
+    }
+
+    @Test
+    void testBuscarLibros_SearchVacio() {
+        List<LibroEntity> libros = new ArrayList<>();
+        libros.add(libro);
+        when(libroRepository.findAll()).thenReturn(libros);
+
+        List<LibroEntity> resultados = libroService.buscarLibros("");
+
+        assertEquals(1, resultados.size());
+    }
+
 
 }
 
