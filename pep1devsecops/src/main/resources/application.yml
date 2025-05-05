@@ -7,7 +7,7 @@ spring:
   datasource:
     url: jdbc:postgresql://localhost:5432/dbdevsecops
     username: postgres
-    password: postgres
+    password: 12345678
   jpa:
     database: POSTGRESQL
     show-sql: true
