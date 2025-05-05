@@ -12,21 +12,21 @@ pipeline {
         stage("Build JAR File") {
             steps {
                 dir("pep1devsecops") {
-                    bat "mvn clean install"
+                    sh "mvn clean install"
                 }
             }
         }
         stage("Test Backend") {
             steps {
                 dir("pep1devsecops") {
-                    bat "mvn test"
+                    sh "mvn test"
                 }
             }
         }
         stage("Build Docker Image backend") {
             steps {
                 dir("pep1devsecops") {
-                    bat "docker build -t derflinger/pep1devsecops_backend ."
+                    sh "docker build -t niko085/pep1devsecops_backend ."
                 }
             }
         }
@@ -34,58 +34,61 @@ pipeline {
             steps {
                 dir("pep1devsecops") {
                     withCredentials([string(credentialsId: 'dckrhubpassword', variable: 'dckpass')]) {
-                        bat "docker login -u derflinger -p ${dckpass}"
-                        bat "docker push derflinger/pep1devsecops_backend"
+                        sh "docker login -u niko085 -p ${dckpass}"
+                        sh "docker push niko085/pep1devsecops_backend"
                     }
                 }
             }
         }
+
         stage("Build Frontend"){
-            steps{
-                dir("front-devsecops"){
-                    bat "npm install"
-                    bat "npm run build"
+            steps {
+                dir("front-devsecops") {
+                    sh "npm install"
+                    sh "npm run build"
                 }
             }
         }
+
         stage("Build Docker Image frontend") {
             steps {
                 dir("front-devsecops") {
-                    bat "docker build -t derflinger/front-devsecops ."
+                    sh "docker build -t niko085/front-devsecops ."
                 }
             }
         }
+
         stage("Push Docker Image frontend") {
             steps {
                 dir("front-devsecops") {
                     withCredentials([string(credentialsId: 'dckrhubpassword', variable: 'dckpass')]) {
-                        bat "docker login -u derflinger -p ${dckpass}"
-                        bat "docker push derflinger/front-devsecops"
+                        sh "docker login -u niko085 -p ${dckpass}"
+                        sh "docker push niko085/front-devsecops"
                     }
                 }
             }
         }
+
         stage("Deploy Backend with Docker Compose") {
             steps {
                 dir("pep1devsecops") {
-                    bat "docker-compose down || exit 0"
-                    bat "docker-compose up -d --build"
+                    sh "docker-compose down || exit 0"
+                    sh "docker-compose up -d --build"
                 }
             }
         }
         stage("Deploy Frontend with Docker Compose") {
             steps {
                 dir("front-devsecops") {
-                    bat "docker-compose down || exit 0"
-                    bat "docker-compose up -d --build"
+                    sh "docker-compose down || exit 0"
+                    sh "docker-compose up -d --build"
                 }
             }
         }
     }
     post {
         always {
-            bat "docker logout"
-
+            sh "docker logout"
         }
     }
 }

@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   front-devsecops:
-    image: derflinger/front-devsecops
+    image: niko085/front-devsecops
     container_name: front-devsecops
     ports:
       - "3000:80"

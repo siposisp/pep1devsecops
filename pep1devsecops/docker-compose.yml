@@ -14,13 +14,13 @@ services:
 
   app:
     container_name: pep1devsecops_backend
-    image: derflinger/pep1devsecops_backend
+    image: niko085/pep1devsecops_backend
     ports:
       - "8081:8081"
     environment:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-db:5432/dbdevsecops
       - SPRING_DATASOURCE_USERNAME=postgres
-      - SPRING_DATASOURCE_PASSWORD=postgres
+      - SPRING_DATASOURCE_PASSWORD=12345678
     deploy:
       restart_policy:
         condition: on-failure
