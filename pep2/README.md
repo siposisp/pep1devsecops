@@ -10,7 +10,7 @@ Este proyecto es un sistema de gestión de emergencias que permite la coordinaci
 
 ## Tecnologías utilizadas
 
-- Java
+- Java (JDK 17)
 - Spring Boot
 - PostgreSQL 
 - PostGIS
@@ -19,7 +19,7 @@ Este proyecto es un sistema de gestión de emergencias que permite la coordinaci
 
 ### Requisitos previos
 
-- JDK 8 o superior instalado
+- JDK 8 o superior (hasta JDK 17) instalado
 - Maven
 - PostgreSQL Server
 - PostGIS
