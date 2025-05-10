@@ -1,5 +1,5 @@
 # Lab2TBD-1-2024 . README
-Este proyecto es un sistema de gestión de emergencias que permite la coordinación entre voluntarios y coordinadores para responder eficazmente a situaciones de emergencia. Para esta segunda entrega se agregaron recursos de localización con la herrameinta postGIS.
+Este proyecto es un sistema de gestión de emergencias que permite la coordinación entre voluntarios y coordinadores para responder eficazmente a situaciones de emergencia. Para esta segunda entrega se agregaron recursos de localización con la herramienta postGIS.
 
 ## Características principales
 
