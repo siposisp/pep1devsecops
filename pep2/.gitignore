@@ -23,7 +23,3 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
-
-*.properties
-LAB-TBD/src/main/resources/application.properties
-LAB-TBD/src/main/resources/application.properties
