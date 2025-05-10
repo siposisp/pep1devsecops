@@ -6,86 +6,94 @@ pipeline {
     stages {
         stage("Checkout") {
             steps {
-                checkout scmGit(branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/siposisp/pep1devsecops']])
+                checkout scmGit(
+                    branches: [[name: '*/main']],
+                    userRemoteConfigs: [[url: 'https://github.com/siposisp/pep1devsecops/pep2']]
+                )
             }
         }
-        stage("Build JAR File") {
+
+        stage("Build Backend") {
             steps {
-                dir("pep1devsecops") {
+                dir("LAB-TBD") {
                     bat "mvn clean install"
                 }
             }
         }
+
         stage("Test Backend") {
             steps {
-                dir("pep1devsecops") {
+                dir("LAB-TBD") {
                     bat "mvn test"
                 }
             }
         }
-        stage("Build Docker Image backend") {
+
+        stage("Build Docker Image Backend") {
             steps {
-                dir("pep1devsecops") {
-                    bat "docker build -t derflinger/pep1devsecops_backend ."
+                dir("LAB-TBD") {
+                    bat "docker build -t niko085/pep2devsecops_backend ."
                 }
             }
         }
-        stage("Push Docker Image backend") {
+
+        stage("Push Docker Image Backend") {
             steps {
-                dir("pep1devsecops") {
-                    withCredentials([string(credentialsId: 'dckrhubpassword', variable: 'dckpass')]) {
-                        bat "docker login -u derflinger -p ${dckpass}"
-                        bat "docker push derflinger/pep1devsecops_backend"
-                    }
+                dir("LAB-TBD") {
+                    bat "docker login -u niko085 -p Nico"
+                    bat "docker push niko085/pep2devsecops_backend"
                 }
             }
         }
-        stage("Build Frontend"){
-            steps{
-                dir("front-devsecops"){
+
+        stage("Build Frontend") {
+            steps {
+                dir("Frontend") {
                     bat "npm install"
                     bat "npm run build"
                 }
             }
         }
-        stage("Build Docker Image frontend") {
+
+        stage("Build Docker Image Frontend") {
             steps {
-                dir("front-devsecops") {
-                    bat "docker build -t derflinger/front-devsecops ."
+                dir("Frontend") {
+                    bat "docker build -t niko085/pep2devsecops_frontend ."
                 }
             }
         }
-        stage("Push Docker Image frontend") {
+
+        stage("Push Docker Image Frontend") {
             steps {
-                dir("front-devsecops") {
-                    withCredentials([string(credentialsId: 'dckrhubpassword', variable: 'dckpass')]) {
-                        bat "docker login -u derflinger -p ${dckpass}"
-                        bat "docker push derflinger/front-devsecops"
-                    }
+                dir("Frontend") {
+                    bat "docker login -u niko085 -p Nico"
+                    bat "docker push niko085/pep2devsecops_frontend"
                 }
             }
         }
-        stage("Deploy Backend with Docker Compose") {
+
+        stage("Deploy Backend") {
             steps {
-                dir("pep1devsecops") {
+                dir("LAB-TBD") {
                     bat "docker-compose down || exit 0"
                     bat "docker-compose up -d --build"
                 }
             }
         }
-        stage("Deploy Frontend with Docker Compose") {
+
+        stage("Deploy Frontend") {
             steps {
-                dir("front-devsecops") {
+                dir("Frontend") {
                     bat "docker-compose down || exit 0"
                     bat "docker-compose up -d --build"
                 }
             }
         }
     }
+
     post {
         always {
             bat "docker logout"
-
         }
     }
 }
