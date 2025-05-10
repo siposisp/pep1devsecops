@@ -48,4 +48,30 @@ public class UserEntity implements UserDetails {
     public String getUsername() {
         return rut;
     }
+
+    @Override
+    public String getPassword() {
+        return this.password;
+    }
+    
+    @Override
+    public boolean isAccountNonExpired() {
+        return true; // o tu lógica personalizada
+    }
+    
+    @Override
+    public boolean isAccountNonLocked() {
+        return true; // o tu lógica personalizada
+    }
+    
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true; // o tu lógica personalizada
+    }
+    
+    @Override
+    public boolean isEnabled() {
+        return availability; // o true, según tu lógica
+    }
+
 }
