@@ -28,6 +28,13 @@ pipeline {
                 }
             }
         }
+        stage("SonarQube Analysis"){
+            steps{
+                dir("LAB-TBD"){
+                    bat "mvn clean verify sonar:sonar  -Dsonar.projectKey=lab-tbd  -Dsonar.projectName=\"LAB TBD\"  -Dsonar.host.url=http://localhost:9000  -Dsonar.token=sqa_98387ca1b4bd116e325d4f605a0fcd2dec439525"
+                }
+            }
+        }        
 
         stage("Build Docker Image Backend") {
             steps {
