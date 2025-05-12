@@ -108,7 +108,7 @@ const registerUser = async () => {
     }
     try {
         console.log("Data antes axios: ", data);
-        const response = await axios.post('http://localhost:8090/auth/register', data);
+        const response = await axios.post('http://localhost:8097/auth/register', data);
         console.log("Usuario registrado correctamente: ", response.data);
         redirectToLogin();
     } catch (error) {

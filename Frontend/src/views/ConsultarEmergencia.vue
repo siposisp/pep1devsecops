@@ -60,7 +60,7 @@ const volunteers = ref([]);
 
 async function fetchEmergencies() {
     try {
-        const response = await axios.get('http://localhost:8090/emergencies/all', {
+        const response = await axios.get('http://localhost:8097/emergencies/all', {
             headers: {
                 Authorization: `Bearer ${store.token.token}`
             }
@@ -74,7 +74,7 @@ async function fetchEmergencies() {
 
 async function fetchNearbyVolunteers(emergency, radius, quantity) {
     try {
-        const response = await axios.get(`http://localhost:8090/emergencies/nearby/${emergency.emergency_id}/${radius}/${quantity}`, {
+        const response = await axios.get(`http://localhost:8097/emergencies/nearby/${emergency.emergency_id}/${radius}/${quantity}`, {
             headers: {
                 Authorization: `Bearer ${store.token.token}`
             }

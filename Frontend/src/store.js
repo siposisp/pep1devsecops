@@ -11,7 +11,7 @@ export const fetchUserRole = async () => {
     console.log("RUT USUARIO: ", decodedRut);
     
     try {
-        const response = await axios.get(`http://localhost:8090/api/users/rut/${decodedRut}`, {
+        const response = await axios.get(`http://localhost:8097/api/users/rut/${decodedRut}`, {
             headers: {
                 Authorization: `Bearer ${store.token.token}`
             }
