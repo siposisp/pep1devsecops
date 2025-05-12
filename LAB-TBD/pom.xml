@@ -175,7 +175,7 @@
           <xmlOutput>true</xmlOutput>
           <outputDirectory>${project.build.directory}</outputDirectory>
           <outputFile>spotbugsXml.xml</outputFile>      
-          <htmlOutput>true<htmlOutput>
+          <htmlOutput>true</htmlOutput>
           <htmlOutputDirectory>${project.build.directory}/spotbugs-html</htmlOutputDirectory>
         </configuration>
       </plugin>
