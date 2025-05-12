@@ -16,7 +16,7 @@ services:
     container_name: pep2devsecops_backend
     image: niko085/pep2devsecops_backend
     ports:
-      - "8090:8090"
+      - "8097:8097"
     environment:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-db:5432/LabTBD-2-2024
       - SPRING_DATASOURCE_USERNAME=postgres
