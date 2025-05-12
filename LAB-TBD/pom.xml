@@ -169,14 +169,21 @@
         <groupId>com.github.spotbugs</groupId>
         <artifactId>spotbugs-maven-plugin</artifactId>
         <version>4.7.3.0</version>
+        <executions>
+          <execution>
+            <phase>verify</phase> <!-- Ejecuta automáticamente al hacer mvn verify -->
+            <goals>
+              <goal>spotbugs</goal>
+            </goals>
+          </execution>
+        </executions>
         <configuration>
           <effort>Max</effort>
           <threshold>Low</threshold>
           <xmlOutput>true</xmlOutput>
           <outputDirectory>${project.build.directory}</outputDirectory>
-          <outputFile>spotbugsXml.xml</outputFile>      
-          <htmlOutput>true</htmlOutput>
-          <htmlOutputDirectory>${project.build.directory}/spotbugs-html</htmlOutputDirectory>
+          <failOnError>false</failOnError> <!-- No detiene el build si hay bugs -->
+          <includeTests>false</includeTests>
         </configuration>
       </plugin>
     </plugins>
