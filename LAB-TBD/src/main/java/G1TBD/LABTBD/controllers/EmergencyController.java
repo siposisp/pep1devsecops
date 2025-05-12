@@ -19,7 +19,7 @@ import java.util.logging.Logger;
 
 @RestController
 @RequestMapping("/emergencies")
-@CrossOrigin(origins = "http://localhost:8090/emergencies")
+@CrossOrigin("*")
 public class EmergencyController {
 
     private final PointService pointService;

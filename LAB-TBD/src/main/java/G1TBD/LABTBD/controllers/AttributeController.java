@@ -12,7 +12,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/attributes")
-@CrossOrigin(origins = "http://localhost:8090/attributes")
+@CrossOrigin("*")
 public class AttributeController {
 
     private final AttributeService attributeService;

@@ -10,7 +10,7 @@ import java.util.logging.Logger;
 
 @RestController
 @RequestMapping("/tasks")
-@CrossOrigin
+@CrossOrigin("*")
 public class TaskController {
 
     private final TaskService taskService;
