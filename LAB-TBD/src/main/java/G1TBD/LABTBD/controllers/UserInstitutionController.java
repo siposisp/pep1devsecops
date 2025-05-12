@@ -10,7 +10,7 @@ import java.util.logging.Logger;
 
 @RestController
 @RequestMapping("/api/user-institution")
-@CrossOrigin("*")
+@CrossOrigin(origins = "http://localhost:8097/api/user-institution")
 public class UserInstitutionController {
 
     private final UserInstitutionService userInstitutionService;

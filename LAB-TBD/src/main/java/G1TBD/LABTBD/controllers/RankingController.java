@@ -10,7 +10,7 @@ import java.util.logging.Logger;
 
 @RestController
 @RequestMapping("/rankings")
-@CrossOrigin("*")
+@CrossOrigin(origins = "http://localhost:8097/rankings")
 public class RankingController {
 
     private final RankingService rankingService;
