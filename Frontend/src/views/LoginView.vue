@@ -50,7 +50,7 @@ const loginUser = async () => {
     console.log(data)
     
     try {
-        const response = await axios.post('http://localhost:8090/auth/login', data);
+        const response = await axios.post('http://localhost:8097/auth/login', data);
         console.log("Usuario logeado correctamente", response.data);
         store.token = response.data;
         console.log("Token guardado: ", store.token);
