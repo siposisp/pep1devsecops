@@ -174,7 +174,8 @@
           <threshold>Low</threshold>
           <xmlOutput>true</xmlOutput>
           <outputDirectory>${project.build.directory}</outputDirectory>
-          <outputFile>spotbugsXml.xml</outputFile>
+          <outputFile>spotbugsXml.xml</outputFile>      
+          <htmlOutputDirectory>${project.build.directory}/spotbugs-html</htmlOutputDirectory>
         </configuration>
       </plugin>
     </plugins>
