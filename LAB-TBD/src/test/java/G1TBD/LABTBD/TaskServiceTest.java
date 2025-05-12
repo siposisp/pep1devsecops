@@ -1,5 +1,6 @@
 package G1TBD.LABTBD;
 
+import G1TBD.LABTBD.entities.EmergencyEntity;
 import G1TBD.LABTBD.entities.TaskEntity;
 import G1TBD.LABTBD.entities.TaskUserEntity;
 import G1TBD.LABTBD.entities.UserEntity;
@@ -10,13 +11,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 public class TaskServiceTest {
@@ -34,49 +33,43 @@ public class TaskServiceTest {
     private List<TaskEntity> taskList;
     private TaskUserEntity taskUserEntity;
     private UserEntity user;
+    private EmergencyEntity emergency;
 
     @BeforeEach
     public void setUp() {
         MockitoAnnotations.openMocks(this);
+
+        emergency = new EmergencyEntity();
+        emergency.setEmergency_id(1L);
+
         task = new TaskEntity();
         task.setTask_id(1L);
         task.setType("Medical");
         task.setDescription("Emergency Task");
         task.setState(true);
+        task.setEmergency(emergency);
+
         taskList = new ArrayList<>();
         taskList.add(task);
-        taskUserEntity = new TaskUserEntity();
+
         user = new UserEntity();
+
+        taskUserEntity = new TaskUserEntity();
         taskUserEntity.setUser(user);
         taskUserEntity.setTask(task);
-
     }
 
-    /*
     @Test
     public void testCreate() {
         taskService.create(task);
-        verify(taskRepository).create(
-                any(Long.class),
-                any(String.class),
-                any(String.class),
-                any(Boolean.class)
-        );
+        verify(taskRepository).create(1L, "Medical", "Emergency Task", true);
     }
-
 
     @Test
     public void testUpdate() {
         taskService.update(task);
-        verify(taskRepository).update(
-                any(Long.class),
-                any(Long.class),
-                any(String.class),
-                any(String.class),
-                any(Boolean.class)
-        );
+        verify(taskRepository).update(1L, 1L, "Medical", "Emergency Task", true);
     }
-    */
 
     @Test
     public void testGetAll() {

@@ -1,5 +1,7 @@
 package G1TBD.LABTBD;
 
+import G1TBD.LABTBD.entities.InstitutionEntity;
+import G1TBD.LABTBD.entities.UserEntity;
 import G1TBD.LABTBD.entities.UserInstitutionEntity;
 import G1TBD.LABTBD.repositories.UserInstitutionRepository;
 import G1TBD.LABTBD.services.UserInstitutionService;
@@ -27,33 +29,39 @@ public class UserInstitutionServiceTest {
     @BeforeEach
     public void setUp() {
         MockitoAnnotations.openMocks(this);
+        UserEntity user = new UserEntity();
+        user.setRut("12345678-9");
+
+        InstitutionEntity institution = new InstitutionEntity();
+        institution.setInstitution_id(1L);
+
         userInstitution = new UserInstitutionEntity();
         userInstitution.setUser_institution_id(1L);
-        userInstitution.setUser(null);
-        userInstitution.setInstitution(null);
+        userInstitution.setUser(user);
+        userInstitution.setInstitution(institution);
+
         userInstitutionList = new ArrayList<>();
         userInstitutionList.add(userInstitution);
     }
 
-    /*
     @Test
     public void testCreate() {
         userInstitutionService.create(userInstitution);
-        verify(userInstitutionRepository).create(any(String.class), any(Long.class));
+        verify(userInstitutionRepository).create("12345678-9", 1L);
     }
 
     @Test
     public void testUpdate() {
         userInstitutionService.update(userInstitution);
-        verify(userInstitutionRepository).update(any(Long.class), any(String.class), any(Long.class));
+        verify(userInstitutionRepository).update(1L, "12345678-9", 1L);
     }
-     */
 
     @Test
     public void testGetAll() {
         when(userInstitutionRepository.getAll()).thenReturn(userInstitutionList);
         List<UserInstitutionEntity> result = userInstitutionService.getAll();
         assertEquals(1, result.size());
+        assertEquals(1L, result.get(0).getUser_institution_id());
         verify(userInstitutionRepository).getAll();
     }
 
@@ -70,6 +78,7 @@ public class UserInstitutionServiceTest {
         when(userInstitutionRepository.getByRut("12345678-9")).thenReturn(userInstitution);
         UserInstitutionEntity result = userInstitutionService.getByRut("12345678-9");
         assertNotNull(result);
+        assertEquals("12345678-9", result.getUser().getRut());
         verify(userInstitutionRepository).getByRut("12345678-9");
     }
 
@@ -78,6 +87,7 @@ public class UserInstitutionServiceTest {
         when(userInstitutionRepository.getByInstitutionId(1L)).thenReturn(userInstitutionList);
         List<UserInstitutionEntity> result = userInstitutionService.getByInstitutionId(1L);
         assertEquals(1, result.size());
+        assertEquals(1L, result.get(0).getInstitution().getInstitution_id());
         verify(userInstitutionRepository).getByInstitutionId(1L);
     }
 
@@ -87,4 +97,3 @@ public class UserInstitutionServiceTest {
         verify(userInstitutionRepository).delete(1L);
     }
 }
-

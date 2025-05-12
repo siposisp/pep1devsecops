@@ -4,20 +4,21 @@ import G1TBD.LABTBD.data.SingleEmergencyData;
 import G1TBD.LABTBD.data.point.PointEntity;
 import G1TBD.LABTBD.data.point.PointService;
 import G1TBD.LABTBD.entities.EmergencyEntity;
-import G1TBD.LABTBD.entities.InstitutionEntity;
 import G1TBD.LABTBD.entities.TaskEntity;
 import G1TBD.LABTBD.entities.UserEntity;
 import G1TBD.LABTBD.repositories.EmergencyRepository;
-import G1TBD.LABTBD.repositories.InstitutionRepository;
 import G1TBD.LABTBD.services.EmergencyService;
-import G1TBD.LABTBD.services.InstitutionService;
 import G1TBD.LABTBD.services.TaskService;
 import G1TBD.LABTBD.services.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.*;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -93,6 +94,17 @@ class EmergencyServiceTest {
     }
 
     @Test
+    void testGetById_whenNotFound_shouldThrowException() {
+        when(emergencyRepository.getById(1L)).thenReturn(null);
+
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
+            emergencyService.getXNearbyVolunteers(1L, 5.0, 5);
+        });
+
+        assertEquals("No emergency found with id: 1", exception.getMessage());
+    }
+
+    @Test
     void testGetAllVolunteers() {
         TaskEntity task = new TaskEntity();
         task.setTask_id(1L);
@@ -143,72 +155,85 @@ class EmergencyServiceTest {
         assertEquals(2, dataList.get(0).getTaskQuantity());
     }
 
-
     @Test
     void testDelete() {
         emergencyService.delete(1L);
         verify(emergencyRepository).delete(1L);
     }
 
-    static class InstitutionServiceTest {
+    @Test
+    void testGetAll() {
+        EmergencyEntity emergency1 = new EmergencyEntity();
+        emergency1.setEmergency_id(1L);
+        emergency1.setTitle("Incendio");
 
-        @Mock
-        private InstitutionRepository institutionRepository;
+        EmergencyEntity emergency2 = new EmergencyEntity();
+        emergency2.setEmergency_id(2L);
+        emergency2.setTitle("Terremoto");
 
-        @InjectMocks
-        private InstitutionService institutionService;
+        when(emergencyRepository.getAll()).thenReturn(Arrays.asList(emergency1, emergency2));
 
-        private InstitutionEntity institution;
+        List<EmergencyEntity> result = emergencyService.getAll();
 
-        @BeforeEach
-        void setUp() {
-            MockitoAnnotations.openMocks(this);
-
-            institution = new InstitutionEntity();
-            institution.setInstitution_id(1L);
-            institution.setName("Institución de prueba");
-        }
-
-        @Test
-        void createInstitution() {
-            institutionService.create(institution);
-
-            verify(institutionRepository, times(1)).create(institution.getName());
-        }
-
-        @Test
-        void updateInstitution() {
-            institutionService.update(institution);
-
-            verify(institutionRepository, times(1)).update(institution.getInstitution_id(), institution.getName());
-        }
-
-        @Test
-        void getAllInstitutions() {
-            when(institutionRepository.getAll()).thenReturn(Arrays.asList(institution));
-
-            List<InstitutionEntity> institutions = institutionService.getAll();
-
-            assertNotNull(institutions);
-            assertEquals(1, institutions.size());
-            assertEquals("Institución de prueba", institutions.get(0).getName());
-        }
-
-        @Test
-        void getInstitutionById() {
-            when(institutionRepository.getById(1L)).thenReturn(institution);
-
-            InstitutionEntity result = institutionService.getById(1L);
-
-            assertNotNull(result);
-            assertEquals("Institución de prueba", result.getName());
-        }
-
-        @Test
-        void deleteInstitution() {
-            institutionService.delete(1L);
-
-            verify(institutionRepository, times(1)).delete(1L);
-        }
+        assertNotNull(result);
+        assertEquals(2, result.size());
+        assertEquals("Incendio", result.get(0).getTitle());
+        assertEquals("Terremoto", result.get(1).getTitle());
     }
+
+    @Test
+    void testGetAllActive() {
+        EmergencyEntity activeEmergency = new EmergencyEntity();
+        activeEmergency.setEmergency_id(1L);
+        activeEmergency.setTitle("Incendio");
+        activeEmergency.setStatus(true);
+
+        when(emergencyRepository.getAllActive()).thenReturn(Collections.singletonList(activeEmergency));
+
+        List<EmergencyEntity> result = emergencyService.getAllActive();
+
+        assertNotNull(result);
+        assertEquals(1, result.size());
+        assertTrue(result.get(0).isStatus());
+        assertEquals("Incendio", result.get(0).getTitle());
+    }
+
+    @Test
+    void testGetByLocation() {
+        EmergencyEntity emergency = new EmergencyEntity();
+        emergency.setEmergency_id(1L);
+        emergency.setTitle("Incendio");
+
+        double latitude = -33.0;
+        double longitude = -70.0;
+
+        when(emergencyRepository.getByLocation(latitude, longitude)).thenReturn(emergency);
+
+        EmergencyEntity result = emergencyService.getByLocation(latitude, longitude);
+
+        assertNotNull(result);
+        assertEquals("Incendio", result.getTitle());
+        assertEquals(1L, result.getEmergency_id());
+    }
+
+    @Test
+    void testGetLatestId() {
+        EmergencyEntity emergency = new EmergencyEntity();
+        emergency.setEmergency_id(1L);
+        emergency.setTitle("Incendio");
+        emergency.setDescription("Incendio forestal");
+        UserEntity user = new UserEntity();
+        user.setRut("12345678-9");
+        emergency.setCoordinator(user);
+
+        when(emergencyRepository.findLatestEmergencyId("Incendio", "Incendio forestal", "12345678-9")).thenReturn(emergency);
+
+        EmergencyEntity result = emergencyService.getLatestId(emergency);
+
+        assertNotNull(result);
+        assertEquals(1L, result.getEmergency_id());
+        assertEquals("Incendio", result.getTitle());
+    }
+
+
 }
