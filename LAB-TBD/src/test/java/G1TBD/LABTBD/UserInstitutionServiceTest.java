@@ -45,13 +45,13 @@ public class UserInstitutionServiceTest {
     }
 
     @Test
-    public void testCreate() {
+    void testCreate() {
         userInstitutionService.create(userInstitution);
         verify(userInstitutionRepository).create("12345678-9", 1L);
     }
 
     @Test
-    public void testUpdate() {
+    void testUpdate() {
         userInstitutionService.update(userInstitution);
         verify(userInstitutionRepository).update(1L, "12345678-9", 1L);
     }

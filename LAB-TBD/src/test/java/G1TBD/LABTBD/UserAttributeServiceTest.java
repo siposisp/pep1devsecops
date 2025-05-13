@@ -48,13 +48,13 @@ public class UserAttributeServiceTest {
     }
 
     @Test
-    public void testCreate() {
+    void testCreate() {
         userAttributeService.create(userAttribute);
         verify(userAttributeRepository).create("12345678-9", 1L);
     }
 
     @Test
-    public void testUpdate() {
+    void testUpdate() {
         userAttributeService.update(userAttribute);
         verify(userAttributeRepository).update(1L, "12345678-9", 1L);
     }
