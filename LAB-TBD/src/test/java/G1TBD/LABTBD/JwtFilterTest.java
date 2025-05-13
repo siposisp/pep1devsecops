@@ -18,7 +18,7 @@ import java.util.ArrayList;
 
 import static org.mockito.Mockito.*;
 
-public class JwtFilterTest {
+class JwtFilterTest {
 
     @Mock
     private JwtService jwtService;
@@ -41,7 +41,7 @@ public class JwtFilterTest {
     }
 
     @Test
-    public void testDoFilter_WithValidToken_SetsAuthentication() throws ServletException, IOException {
+    void testDoFilter_WithValidToken_SetsAuthentication() throws ServletException, IOException {
         MockHttpServletRequest request = new MockHttpServletRequest();
         MockHttpServletResponse response = new MockHttpServletResponse();
 
@@ -60,7 +60,7 @@ public class JwtFilterTest {
     }
 
     @Test
-    public void testDoFilter_WithValidToken_SetsAuthentication2() throws ServletException, IOException {
+    void testDoFilter_WithValidToken_SetsAuthentication2() throws ServletException, IOException {
         MockHttpServletRequest request = new MockHttpServletRequest();
         MockHttpServletResponse response = new MockHttpServletResponse();
 
@@ -80,7 +80,7 @@ public class JwtFilterTest {
 
 
     @Test
-    public void testDoFilter_NoAuthorizationHeader_DoesNothing() throws ServletException, IOException {
+    void testDoFilter_NoAuthorizationHeader_DoesNothing() throws ServletException, IOException {
         MockHttpServletRequest request = new MockHttpServletRequest();
         MockHttpServletResponse response = new MockHttpServletResponse();
 
@@ -90,7 +90,7 @@ public class JwtFilterTest {
     }
 
     @Test
-    public void testDoFilter_NoAuthorizationHeader() throws ServletException, IOException {
+    void testDoFilter_NoAuthorizationHeader() throws ServletException, IOException {
         MockHttpServletRequest request = new MockHttpServletRequest();
         MockHttpServletResponse response = new MockHttpServletResponse();
 
@@ -100,7 +100,7 @@ public class JwtFilterTest {
     }
 
     @Test
-    public void testDoFilter_InvalidHeaderFormat() throws ServletException, IOException {
+    void testDoFilter_InvalidHeaderFormat() throws ServletException, IOException {
         MockHttpServletRequest request = new MockHttpServletRequest();
         MockHttpServletResponse response = new MockHttpServletResponse();
         request.addHeader("Authorization", "InvalidToken 123");
@@ -111,7 +111,7 @@ public class JwtFilterTest {
     }
 
     @Test
-    public void testDoFilter_UsernameFromTokenIsNull() throws ServletException, IOException {
+    void testDoFilter_UsernameFromTokenIsNull() throws ServletException, IOException {
         MockHttpServletRequest request = new MockHttpServletRequest();
         MockHttpServletResponse response = new MockHttpServletResponse();
         request.addHeader("Authorization", "Bearer token");
@@ -124,7 +124,7 @@ public class JwtFilterTest {
     }
 
     @Test
-    public void testDoFilter_TokenInvalid() throws ServletException, IOException {
+    void testDoFilter_TokenInvalid() throws ServletException, IOException {
         MockHttpServletRequest request = new MockHttpServletRequest();
         MockHttpServletResponse response = new MockHttpServletResponse();
         request.addHeader("Authorization", "Bearer token");
