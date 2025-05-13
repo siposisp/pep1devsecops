@@ -1,5 +1,6 @@
 -- Crea la extension PostGis en la base de datos si no existe
 CREATE EXTENSION IF NOT EXISTS postgis;
+ALTER DATABASE LabTBD-2-2024 REFRESH COLLATION VERSION;
 
 CREATE TABLE points (
     point_id SERIAL PRIMARY KEY,
