@@ -12,7 +12,7 @@ import java.util.logging.Logger;
 
 @RestController
 @RequestMapping("/emergencyAttribute")
-@CrossOrigin(origins = "http://localhost:8097/emergencyAttribute")
+@CrossOrigin(origins = "http://localhost:8090/emergencyAttribute")
 public class EmergencyAttributeController {
 
     private final EmergencyAttributeService emergencyAttributeService;
