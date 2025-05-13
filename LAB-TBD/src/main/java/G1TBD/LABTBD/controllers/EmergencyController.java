@@ -88,8 +88,10 @@ public class EmergencyController {
 
 
     //---------------------------READ---------------------------
+    /*
     @GetMapping("/all")
     public List<EmergencyEntity> getAll(){return emergencyService.getAll();}
+     */
 
     @GetMapping("/active")
     public List<EmergencyEntity> getAllActive(){return  emergencyService.getAllActive();}
