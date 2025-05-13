@@ -2,6 +2,9 @@ version: '3.8'
 
 services:
   front-devsecops:
+    build:
+      context: .
+      dockerfile: Dockerfile
     image: derflinger/pep2devsecops_frontend
     container_name: pep2devsecops_frontend
     ports:

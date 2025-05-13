@@ -1,0 +1,106 @@
+pipeline {
+    agent any
+    tools {
+        maven "maven"
+    }
+    stages {
+        stage("Checkout") {
+            steps {
+                checkout scmGit(
+                    branches: [[name: '*/main']],
+                    userRemoteConfigs: [[url: 'https://github.com/siposisp/pep1devsecops']]
+                )
+            }
+        }
+
+        stage("Build Backend") {
+            steps {
+                dir("LAB-TBD") {
+                    bat "mvn clean install"
+                }
+            }
+        }
+
+        stage("Test Backend") {
+            steps {
+                dir("LAB-TBD") {
+                    bat "mvn test"
+                }
+            }
+        }
+        stage("SonarQube Analysis"){
+            steps{
+                dir("LAB-TBD"){
+                    bat "mvn clean verify sonar:sonar  -Dsonar.projectKey=lab-tbd  -Dsonar.projectName=\"LAB TBD\"  -Dsonar.host.url=http://localhost:9000  -Dsonar.token=sqa_98387ca1b4bd116e325d4f605a0fcd2dec439525"
+                }
+            }
+        }        
+
+        stage("Build Docker Image Backend") {
+            steps {
+                dir("LAB-TBD") {
+                    bat "docker build -t niko085/pep2devsecops_backend ."
+                }
+            }
+        }
+
+        stage("Push Docker Image Backend") {
+            steps {
+                dir("LAB-TBD") {
+                    bat "docker login -u niko085 -p Nico"
+                    bat "docker push niko085/pep2devsecops_backend"
+                }
+            }
+        }
+
+        stage("Build Frontend") {
+            steps {
+                dir("Frontend") {
+                    bat "npm install"
+                    bat "npm run build"
+                }
+            }
+        }
+
+        stage("Build Docker Image Frontend") {
+            steps {
+                dir("Frontend") {
+                    bat "docker build -t niko085/pep2devsecops_frontend ."
+                }
+            }
+        }
+
+        stage("Push Docker Image Frontend") {
+            steps {
+                dir("Frontend") {
+                    bat "docker login -u niko085 -p Nico"
+                    bat "docker push niko085/pep2devsecops_frontend"
+                }
+            }
+        }
+
+        stage("Deploy Backend") {
+            steps {
+                dir("LAB-TBD") {
+                    bat "docker-compose down || exit 0"
+                    bat "docker-compose up -d --build"
+                }
+            }
+        }
+
+        stage("Deploy Frontend") {
+            steps {
+                dir("Frontend") {
+                    bat "docker-compose down || exit 0"
+                    bat "docker-compose up -d --build"
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            bat "docker logout"
+        }
+    }
+}

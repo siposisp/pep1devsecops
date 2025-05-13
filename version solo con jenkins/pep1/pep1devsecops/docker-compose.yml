@@ -1,0 +1,31 @@
+version: "3.8"
+
+services:
+  postgres-db:
+    image: postgres
+    restart: always
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: dbdevsecops
+    ports:
+      - "5432:5432"
+
+  app:
+    container_name: pep1devsecops_backend
+    image: derflinger/pep1devsecops_backend
+    ports:
+      - "8081:8081"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-db:5432/dbdevsecops
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=postgres
+    deploy:
+      restart_policy:
+        condition: on-failure
+    depends_on:
+      - postgres-db
+
+volumes:
+  postgres_data:

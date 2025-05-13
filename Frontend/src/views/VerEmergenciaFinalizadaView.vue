@@ -46,7 +46,7 @@ const emergencia = ref(null)
 
 async function fetchEmergencia() {
     try {
-        const response = await axios.get('http://localhost:8097/emergencies/closed');
+        const response = await axios.get('http://localhost:8090/emergencies/closed');
         console.log("TERMINA - Emergencias Closed: ", response.data);
         emergencia.value = response.data;
     } catch (error) {
@@ -55,7 +55,7 @@ async function fetchEmergencia() {
 }
 
 async function fetchTarea() {
-    const tareaGet = "http://localhost:8097/tasks/emergency_id/";
+    const tareaGet = "http://localhost:8090/tasks/emergency_id/";
     if (emergencia.value && emergencia.value.length > 0) {
         try {
             const fetchPromises = emergencia.value.map(async (emergenciaEach) => {
@@ -77,7 +77,7 @@ async function fetchTarea() {
 }
 
 async function fetchVoluntarios() {
-    const rankingGet = "http://localhost:8097/rankings/task_id/";
+    const rankingGet = "http://localhost:8090/rankings/task_id/";
     if (emergencia.value && emergencia.value.length > 0) {
         try {
             const fetchPromises = emergencia.value.map(async (emergenciaEach) => {

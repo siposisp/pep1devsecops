@@ -1,0 +1,57 @@
+¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡ANTES QUE TODO, ABRIR EL DOCKER DESKTOP!!!!!!!!!!!!!!!!
+
+BASE DE DATOS
+Paso 1: crear volumen de la base datos
+docker volume create pep1-db-data
+
+Paso 2: loguearse (si no estas logueado)
+docker login
+
+
+
+----------------------BACKEND----------------------
+Paso 1: Generar el build
+docker build -t niko085/pep1devsecops_backend .
+
+Paso 2: Subir imagen a dockerhub
+docker push -t niko085/pep1devsecops_backend
+
+Paso 3: ejecutar
+docker-compose up
+
+
+Para descargar la imagen
+docker pull niko085/pep1devsecops_backend
+
+Para terminar ejecución en BACKEND
+docker-compose down
+
+
+
+
+----------------------FRONTEND----------------------
+Paso 1(generar el build):
+npm run build
+
+Paso 2: 
+docker build -t niko085/pep1devsecops_frontend .
+
+Paso 3: (Subir la imagen)
+docker push niko085/pep1devsecops_frontend
+
+Paso 4: (descargar la imagen)
+docker pull niko085/pep1devsecops_frontend
+
+
+Paso 5: ejecutar
+docker compose up -d
+
+
+
+ver el estado de cada uno: docker compose ps
+
+Reiniciar los contenedores:
+docker-compose restart nginx-frontend
+
+Para terminar ejecución en FRONTEND
+docker compose down

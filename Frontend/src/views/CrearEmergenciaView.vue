@@ -56,7 +56,7 @@ const removeAttribute = (attribute) => {
 
 async function fetchAttributes() {
     try {
-        const response = await axios.get(`http://localhost:8097/attributes/all`, {
+        const response = await axios.get(`http://localhost:8090/attributes/all`, {
             headers: {
                 Authorization: `Bearer ${store.token.token}`
             }
@@ -73,7 +73,7 @@ async function createEmergency(emergency) {
         const user = await fetchUserRole();
         emergency.coordinator = user.rut;
 
-        const response = await axios.post(`http://localhost:8097/emergencies/create`, emergency, {
+        const response = await axios.post(`http://localhost:8090/emergencies/create`, emergency, {
             headers: {
                 Authorization: `Bearer ${store.token.token}`
             }
@@ -97,7 +97,7 @@ async function createEmergencyAttribute(emergency) {
         }));
         console.log("Lista de emergencia-atributo: ", emergencyAttributes);
 
-        const response = await axios.post(`http://localhost:8097/emergencyAttribute/createVarious`, emergencyAttributes, {
+        const response = await axios.post(`http://localhost:8090/emergencyAttribute/createVarious`, emergencyAttributes, {
             headers: {
                 Authorization: `Bearer ${store.token.token}`
             }

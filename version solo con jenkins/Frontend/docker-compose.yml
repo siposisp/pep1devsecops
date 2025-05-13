@@ -1,0 +1,9 @@
+version: '3.8'
+
+services:
+  front-devsecops:
+    image: niko085/pep2devsecops_frontend2
+    container_name: pep2devsecops_frontend2
+    ports:
+      - "3001:80"
+    restart: always

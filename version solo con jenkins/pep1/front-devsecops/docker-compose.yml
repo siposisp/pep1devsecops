@@ -1,0 +1,9 @@
+version: '3.8'
+
+services:
+  front-devsecops:
+    image: derflinger/front-devsecops
+    container_name: front-devsecops
+    ports:
+      - "3000:80"
+    restart: always
