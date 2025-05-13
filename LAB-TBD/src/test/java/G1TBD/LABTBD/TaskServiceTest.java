@@ -60,19 +60,19 @@ public class TaskServiceTest {
     }
 
     @Test
-    public void testCreate() {
+    void testCreate() {
         taskService.create(task);
         verify(taskRepository).create(1L, "Medical", "Emergency Task", true);
     }
 
     @Test
-    public void testUpdate() {
+    void testUpdate() {
         taskService.update(task);
         verify(taskRepository).update(1L, 1L, "Medical", "Emergency Task", true);
     }
 
     @Test
-    public void testGetAll() {
+    void testGetAll() {
         when(taskRepository.getAll()).thenReturn(taskList);
         List<TaskEntity> tasks = taskService.getAll();
         verify(taskRepository).getAll();
@@ -80,7 +80,7 @@ public class TaskServiceTest {
     }
 
     @Test
-    public void testGetById() {
+    void testGetById() {
         when(taskRepository.getById(1L)).thenReturn(task);
         TaskEntity retrievedTask = taskService.getById(1L);
         verify(taskRepository).getById(1L);
@@ -88,7 +88,7 @@ public class TaskServiceTest {
     }
 
     @Test
-    public void testGetByEmergencyId() {
+    void testGetByEmergencyId() {
         when(taskRepository.getByEmergencyId(1L)).thenReturn(taskList);
         List<TaskEntity> tasksByEmergency = taskService.getByEmergencyId(1L);
         verify(taskRepository).getByEmergencyId(1L);
@@ -96,7 +96,7 @@ public class TaskServiceTest {
     }
 
     @Test
-    public void testGetAllVolunteers() {
+    void testGetAllVolunteers() {
         List<TaskUserEntity> taskUserEntities = new ArrayList<>();
         taskUserEntities.add(taskUserEntity);
         when(taskUserRepository.getVolunteersByTaskId(1L)).thenReturn(taskUserEntities);
@@ -106,7 +106,7 @@ public class TaskServiceTest {
     }
 
     @Test
-    public void testGetTasksByVolunteer() {
+    void testGetTasksByVolunteer() {
         List<TaskUserEntity> taskUserEntities = new ArrayList<>();
         taskUserEntities.add(taskUserEntity);
         when(taskUserRepository.getByVolunteer("volunteer")).thenReturn(taskUserEntities);
@@ -116,7 +116,7 @@ public class TaskServiceTest {
     }
 
     @Test
-    public void testDelete() {
+    void testDelete() {
         taskService.delete(1L);
         verify(taskRepository).delete(1L);
     }

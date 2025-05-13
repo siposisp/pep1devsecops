@@ -60,10 +60,11 @@ class UserServiceTest {
 
         verify(pointService, times(1)).create(any(PointEntity.class));
         verify(userRepository, times(1)).create(
-                eq("12345678-9"), eq("test@example.com"), eq("John"),
-                eq("Doe"), eq(birthdate), eq("M"),
-                eq("password"), eq("VOLUNTEER"), eq(true), eq(location.getPoint_id())
+                "12345678-9", "test@example.com", "John",
+                "Doe", birthdate, "M",
+                "password", "VOLUNTEER", true, location.getPoint_id()
         );
+
     }
 
     @Test
@@ -91,9 +92,9 @@ class UserServiceTest {
         userService.update(user);
 
         verify(userRepository, times(1)).update(
-                eq("11111111-1"), eq("update@test.com"), eq("Updated"),
-                eq("User"), eq(birthdate), eq("F"),
-                eq("updatedpass"), eq("COORDINATOR"), eq(false)
+                "11111111-1", "update@test.com", "Updated",
+                "User", birthdate, "F",
+                "updatedpass", "COORDINATOR", false
         );
     }
 
