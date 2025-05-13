@@ -10,7 +10,7 @@ import java.util.logging.Logger;
 
 @RestController
 @RequestMapping("/api/user-attribute")
-@CrossOrigin(origins = "http://localhost:8097/api/user-attribute")
+@CrossOrigin(origins = "http://localhost:8090/api/user-attribute")
 public class UserAttributeController {
 
     private final UserAttributeService userAttributeService;
