@@ -16,7 +16,6 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.text.ParseException;
@@ -47,7 +46,7 @@ class AuthServiceImpTest {
     private UserEntity mockUser;
 
     @BeforeEach
-    void setUp() throws ParseException {
+    void setup() {
         MockitoAnnotations.openMocks(this);
 
         // Simular un objeto de usuario con datos de ejemplo

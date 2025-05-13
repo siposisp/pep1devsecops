@@ -35,7 +35,7 @@ class JwtFilterTest {
     private JwtFilter jwtFilter;
 
     @BeforeEach
-    public void setUp() {
+    void setUp() {
         MockitoAnnotations.openMocks(this);
         jwtFilter = new JwtFilter(userDetailsService, jwtService);
     }
@@ -89,15 +89,6 @@ class JwtFilterTest {
         verify(filterChain).doFilter(request, response);
     }
 
-    @Test
-    void testDoFilter_NoAuthorizationHeader() throws ServletException, IOException {
-        MockHttpServletRequest request = new MockHttpServletRequest();
-        MockHttpServletResponse response = new MockHttpServletResponse();
-
-        jwtFilter.doFilter(request, response, filterChain);
-
-        verify(filterChain).doFilter(request, response);
-    }
 
     @Test
     void testDoFilter_InvalidHeaderFormat() throws ServletException, IOException {

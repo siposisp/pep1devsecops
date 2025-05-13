@@ -1,7 +1,6 @@
 package G1TBD.LABTBD.repositories;
 
 import G1TBD.LABTBD.entities.TaskEntity;
-import G1TBD.LABTBD.entities.UserEntity;
 import jakarta.transaction.Transactional;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;

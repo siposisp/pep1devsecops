@@ -48,7 +48,7 @@ class SingleEmergencyDataTest {
         SingleEmergencyData data1 = new SingleEmergencyData("Aluvión", 3, 1);
         assertEquals(data1, data1);
         assertNotEquals(data1, null);
-        assertNotEquals(data1, "string");
+        assertNotEquals("string", data1);
         SingleEmergencyData dataDifferent = new SingleEmergencyData("Incendio", 3, 1);
         assertNotEquals(data1, dataDifferent);
     }
@@ -60,7 +60,7 @@ class SingleEmergencyDataTest {
         SingleEmergencyData data3 = new SingleEmergencyData("Incendio", 4, 2);
 
         assertTrue(data1.equals(data2));  // Mismos datos, deben ser iguales
-        assertFalse(data1.equals(data3)); // Diferentes datos, deben ser diferentes
+        assertNotEquals(data1,data3); // Diferentes datos, deben ser diferentes
     }
 
 

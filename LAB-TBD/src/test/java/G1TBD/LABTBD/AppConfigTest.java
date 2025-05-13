@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.junit.jupiter.api.function.Executable;
 
 import java.util.Optional;
 
@@ -29,11 +30,12 @@ class AppConfigTest {
 
     @Test
     void testLoadUserByUsername_UserFound() {
-        // Arrange
         String username = "12345678-9";
         UserEntity mockUser = new UserEntity();
         when(userRepository.getByRut(username)).thenReturn(Optional.of(mockUser));
+
         UserDetails result = appConfig.userDetailService().loadUserByUsername(username);
+
         assertNotNull(result);
         verify(userRepository, times(1)).getByRut(username);
     }
@@ -42,9 +44,10 @@ class AppConfigTest {
     void testLoadUserByUsername_UserNotFound() {
         String username = "no-existe";
         when(userRepository.getByRut(username)).thenReturn(Optional.empty());
-        assertThrows(UsernameNotFoundException.class, () ->
-                appConfig.userDetailService().loadUserByUsername(username)
-        );
+
+        Executable executable = () -> appConfig.userDetailService().loadUserByUsername(username);
+
+        assertThrows(UsernameNotFoundException.class, executable);
         verify(userRepository, times(1)).getByRut(username);
     }
 }

@@ -1,7 +1,6 @@
 package G1TBD.LABTBD;
 
 import G1TBD.LABTBD.config.JwtService;
-import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import org.junit.jupiter.api.Test;
