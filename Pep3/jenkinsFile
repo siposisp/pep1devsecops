@@ -34,7 +34,14 @@ pipeline {
             steps {
                 dir("Pep3/LAB-TBD") {
                     bat "mvn verify -DskipTests || echo 'Maven verify falló pero continuando...'"
-                    bat "generate-spotbugs-html.bat"
+                    
+                    script {
+                        def exitCode = bat(script: "generate-spotbugs-html.bat", returnStatus: true)
+                        if (exitCode != 0) {
+                            echo "⚠️ SpotBugs HTML terminó con código de salida: ${exitCode}, pero se continuará con la pipeline."
+                        }
+                    }
+        
                     bat "dir target"
                     bat "dir target\\spotbugs-html || echo 'Directorio spotbugs-html no encontrado'"
                     bat "dir target\\spotbugsXml.xml || echo 'Archivo XML no encontrado'"
