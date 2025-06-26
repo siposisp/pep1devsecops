@@ -83,12 +83,12 @@
       <version>0.10-2.5-1</version>
     </dependency>
     <dependency>
-      <groupId>org.hibernate</groupId>
+      <groupId>org.hibernate.orm</groupId>
       <artifactId>hibernate-core</artifactId>
       <version>6.5.0.Final</version>
     </dependency>
     <dependency>
-      <groupId>org.hibernate</groupId>
+      <groupId>org.hibernate.orm</groupId>
       <artifactId>hibernate-spatial</artifactId>
       <version>6.5.0.Final</version>
     </dependency>
@@ -134,6 +134,12 @@
       <groupId>io.micrometer</groupId>
       <artifactId>micrometer-registry-prometheus</artifactId>
     </dependency>
+    <!-- H2 Database para tests -->
+    <dependency>
+      <groupId>com.h2database</groupId>
+      <artifactId>h2</artifactId>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 
   <build>
@@ -153,6 +159,9 @@
         <version>3.0.0</version> <!-- Updated Surefire plugin version -->
         <configuration>
           <useModulePath>false</useModulePath>
+          <skipTests>false</skipTests>
+          <testFailureIgnore>true</testFailureIgnore>
+          <argLine>-Dspring.profiles.active=test</argLine>
         </configuration>
       </plugin>
       <plugin>

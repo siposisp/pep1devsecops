@@ -15,7 +15,7 @@ pipeline {
 
         stage("Build Backend") {
             steps {
-                dir("LAB-TBD") {
+                dir("Pep3/LAB-TBD") {
                     bat "mvn clean install"
                 }
             }
@@ -23,7 +23,7 @@ pipeline {
 
         stage("Test Backend") {
             steps {
-                dir("LAB-TBD") {
+                dir("Pep3/LAB-TBD") {
                     bat "mvn test"
                 }
             }
@@ -31,7 +31,7 @@ pipeline {
         
         stage("SpotBugs Analysis") {
             steps {
-                dir("LAB-TBD") {
+                dir("Pep3/LAB-TBD") {
                     bat "mvn spotbugs:spotbugs"
                     bat "dir target"
                 }
@@ -40,7 +40,7 @@ pipeline {
         
         stage("SonarQube Analysis") {
             steps {
-                dir("LAB-TBD") {
+                dir("Pep3/LAB-TBD") {
                     bat "mvn clean verify sonar:sonar  -Dsonar.projectKey=pep2 -Dsonar.projectName='pep2'  -Dsonar.host.url=http://localhost:9000  -Dsonar.token=sqp_1194941fd244a6fd7eb08ddcb13f7a6320d2c6b8"
                 }
             }
@@ -48,7 +48,7 @@ pipeline {
         
         stage("Build Docker Image backend") {
             steps {
-                dir("LAB-TBD") {
+                dir("Pep3/LAB-TBD") {
                     bat "docker build -t derflinger/pep2devsecops_backend ."
                 }
             }
@@ -56,7 +56,7 @@ pipeline {
         
         stage("Push Docker Image backend") {
             steps {
-                dir("LAB-TBD") {
+                dir("Pep3/LAB-TBD") {
                     withCredentials([string(credentialsId: 'dckrhubpassword', variable: 'dckpass')]) {
                         bat "docker login -u derflinger -p ${dckpass}"
                         bat "docker push derflinger/pep2devsecops_backend"
@@ -67,7 +67,7 @@ pipeline {
 
         stage("Build Frontend") {
             steps {
-                dir("Frontend") {
+                dir("Pep3/Frontend") {
                     bat "npm install"
                     bat "npm run build"
                 }
@@ -76,7 +76,7 @@ pipeline {
 
         stage("Build Docker Image Frontend") {
             steps {
-                dir("Frontend") {
+                dir("Pep3/Frontend") {
                     bat "docker build -t derflinger/pep2devsecops_frontend ."
                 }
             }
@@ -84,7 +84,7 @@ pipeline {
 
         stage("Push Docker Image frontend") {
             steps {
-                dir("Frontend") {
+                dir("Pep3/Frontend") {
                     withCredentials([string(credentialsId: 'dckrhubpassword', variable: 'dckpass')]) {
                         bat "docker login -u derflinger -p ${dckpass}"
                         bat "docker push derflinger/pep2devsecops_frontend"
@@ -95,7 +95,7 @@ pipeline {
 
         stage("Deploy Backend with Docker Compose") {
             steps {
-                dir("LAB-TBD") {
+                dir("Pep3/LAB-TBD") {
                     bat "docker-compose down -v || exit 0"
                     bat "docker-compose up -d --build"
                 }
@@ -104,7 +104,7 @@ pipeline {
         
         stage("Deploy Frontend with Docker Compose") {
             steps {
-                dir("Frontend") {
+                dir("Pep3/Frontend") {
                     bat "docker-compose down || exit 0"
                     bat "docker-compose up -d --build"
                 }
@@ -115,7 +115,7 @@ pipeline {
             steps {
                 publishHTML([
                     reportName: 'SpotBugs HTML Report',
-                    reportDir: 'LAB-TBD/target/spotbugs-html',
+                    reportDir: 'Pep3/LAB-TBD/target/spotbugs-html',
                     reportFiles: 'index.html',
                     keepAll: true,
                     alwaysLinkToLastBuild: true,
@@ -146,15 +146,15 @@ pipeline {
     post {
         always {
             bat "docker logout"
-            recordIssues tools: [spotBugs(pattern: '**/spotbugsXml.xml')]
+            recordIssues tools: [spotBugs(pattern: 'Pep3/**/spotbugsXml.xml')]
             
             // Limpiar contenedores si el build falla
             script {
                 if (currentBuild.result == 'FAILURE') {
-                    dir("LAB-TBD") {
+                    dir("Pep3/LAB-TBD") {
                         bat "docker-compose down -v || exit 0"
                     }
-                    dir("Frontend") {
+                    dir("Pep3/Frontend") {
                         bat "docker-compose down || exit 0"
                     }
                 }
