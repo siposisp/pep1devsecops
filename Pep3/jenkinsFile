@@ -34,7 +34,7 @@ pipeline {
                 dir("Pep3/LAB-TBD") {
                     bat "mvn clean compile"
                     bat "mvn spotbugs:spotbugs"
-                    bat "mvn spotbugs:html"
+                    bat "mvn spotbugs-html:html"
                     bat "dir target"
                     bat "dir target\\spotbugs-html || echo 'Directorio spotbugs-html no encontrado'"
                     bat "dir target\\spotbugsXml.xml || echo 'Archivo XML no encontrado'"

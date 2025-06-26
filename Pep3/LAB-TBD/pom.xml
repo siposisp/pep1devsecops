@@ -193,7 +193,6 @@
             <phase>verify</phase> <!-- Ejecuta automáticamente al hacer mvn verify -->
             <goals>
               <goal>spotbugs</goal>
-              <goal>html</goal>
             </goals>
           </execution>
         </executions>
@@ -201,10 +200,25 @@
           <effort>Max</effort>
           <threshold>Low</threshold>
           <xmlOutput>true</xmlOutput>
-          <htmlOutput>true</htmlOutput>
           <outputDirectory>${project.build.directory}</outputDirectory>
           <failOnError>false</failOnError> <!-- No detiene el build si hay bugs -->
           <includeTests>false</includeTests>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>com.github.spotbugs</groupId>
+        <artifactId>spotbugs-html</artifactId>
+        <version>4.7.3.0</version>
+        <executions>
+          <execution>
+            <phase>verify</phase>
+            <goals>
+              <goal>html</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <outputDirectory>${project.build.directory}/spotbugs-html</outputDirectory>
         </configuration>
       </plugin>
     </plugins>
