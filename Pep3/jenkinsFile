@@ -32,10 +32,12 @@ pipeline {
         stage("SpotBugs Analysis") {
             steps {
                 dir("Pep3/LAB-TBD") {
+                    bat "mvn clean compile"
                     bat "mvn spotbugs:spotbugs"
                     bat "mvn spotbugs:html"
                     bat "dir target"
                     bat "dir target\\spotbugs-html || echo 'Directorio spotbugs-html no encontrado'"
+                    bat "dir target\\spotbugsXml.xml || echo 'Archivo XML no encontrado'"
                 }
             }
         }
@@ -144,9 +146,14 @@ pipeline {
                     // Verificar que Grafana esté funcionando
                     bat "curl -f http://localhost:3001/api/health || echo 'Grafana no está respondiendo'"
                     
-                    // Verificar que la aplicación esté exponiendo métricas
+                    // Verificar que la aplicación esté exponiendo health check
                     bat "curl -f http://localhost:8097/actuator/health || echo 'Health check de la aplicación no disponible'"
+                    
+                    // Verificar que la aplicación esté exponiendo métricas
                     bat "curl -f http://localhost:8097/actuator/prometheus || echo 'Métricas de la aplicación no disponibles'"
+                    
+                    // Verificar que la aplicación esté exponiendo info
+                    bat "curl -f http://localhost:8097/actuator/info || echo 'Info de la aplicación no disponible'"
                 }
             }
         }

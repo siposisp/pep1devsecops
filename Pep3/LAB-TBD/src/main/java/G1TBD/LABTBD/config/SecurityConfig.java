@@ -43,7 +43,11 @@ public class SecurityConfig {
         return new OrRequestMatcher(
                 new AntPathRequestMatcher("/auth/**"),
                 new AntPathRequestMatcher("/emergencies/**"),
-                new AntPathRequestMatcher("/emergencyAttribute/**")
+                new AntPathRequestMatcher("/emergencyAttribute/**"),
+                new AntPathRequestMatcher("/actuator/**"),
+                new AntPathRequestMatcher("/actuator/health"),
+                new AntPathRequestMatcher("/actuator/prometheus"),
+                new AntPathRequestMatcher("/actuator/metrics/**")
         );
     }
 

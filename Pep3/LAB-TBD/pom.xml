@@ -193,6 +193,7 @@
             <phase>verify</phase> <!-- Ejecuta automáticamente al hacer mvn verify -->
             <goals>
               <goal>spotbugs</goal>
+              <goal>html</goal>
             </goals>
           </execution>
         </executions>
