@@ -8,7 +8,7 @@
   <parent>
     <groupId>org.springframework.boot</groupId>
     <artifactId>spring-boot-starter-parent</artifactId>
-    <version>3.3.3</version>
+    <version>3.4.0</version>
     <relativePath/> <!-- lookup parent from repository -->
   </parent>
 
@@ -112,24 +112,24 @@
     <dependency>
       <groupId>com.fasterxml.jackson.datatype</groupId>
       <artifactId>jackson-datatype-jdk8</artifactId>
-      <version>2.17.1</version>
+      <version>2.18.0</version>
     </dependency>
     <dependency>
       <groupId>org.mockito</groupId>
       <artifactId>mockito-core</artifactId>
-      <version>5.2.0</version>
+      <version>5.8.0</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-api</artifactId>
-      <version>5.9.0</version> <!-- Updated JUnit Jupiter version -->
+      <version>5.10.2</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-engine</artifactId>
-      <version>5.9.0</version> <!-- Updated JUnit Jupiter version -->
+      <version>5.10.2</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
@@ -197,7 +197,7 @@
       <plugin>
         <groupId>org.owasp</groupId>
         <artifactId>dependency-check-maven</artifactId>
-        <version>8.4.3</version>
+        <version>12.1.0</version>
         <executions>
           <execution>
             <goals>
