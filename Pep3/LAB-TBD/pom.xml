@@ -200,6 +200,7 @@
           <effort>Max</effort>
           <threshold>Low</threshold>
           <xmlOutput>true</xmlOutput>
+          <htmlOutput>true</htmlOutput>
           <outputDirectory>${project.build.directory}</outputDirectory>
           <failOnError>false</failOnError> <!-- No detiene el build si hay bugs -->
           <includeTests>false</includeTests>

@@ -33,7 +33,9 @@ pipeline {
             steps {
                 dir("Pep3/LAB-TBD") {
                     bat "mvn spotbugs:spotbugs"
+                    bat "mvn spotbugs:html"
                     bat "dir target"
+                    bat "dir target\\spotbugs-html || echo 'Directorio spotbugs-html no encontrado'"
                 }
             }
         }
@@ -130,6 +132,12 @@ pipeline {
                     // Esperar a que los servicios estén listos
                     sleep(30)
                     
+                    // Verificar el estado de los contenedores
+                    bat "docker ps -a"
+                    
+                    // Verificar logs de la aplicación
+                    bat "docker logs pep2devsecops_backend --tail 50 || echo 'No se pueden obtener logs de la aplicación'"
+                    
                     // Verificar que Prometheus esté funcionando
                     bat "curl -f http://localhost:9090/-/healthy || echo 'Prometheus no está respondiendo'"
                     
@@ -137,6 +145,7 @@ pipeline {
                     bat "curl -f http://localhost:3001/api/health || echo 'Grafana no está respondiendo'"
                     
                     // Verificar que la aplicación esté exponiendo métricas
+                    bat "curl -f http://localhost:8097/actuator/health || echo 'Health check de la aplicación no disponible'"
                     bat "curl -f http://localhost:8097/actuator/prometheus || echo 'Métricas de la aplicación no disponibles'"
                 }
             }
