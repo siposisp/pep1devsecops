@@ -82,7 +82,7 @@ pipeline {
         stage("SonarQube Analysis") {
             steps {
                 dir("LAB-TBD") {
-                    bat "mvn clean verify sonar:sonar -Dsonar.projectKey=pep2 -Dsonar.projectName='pep2' -Dsonar.host.url=http://localhost:9000 -Dsonar.token=sqp_1194941fd244a6fd7eb08ddcb13f7a6320d2c6b8"
+                    bat "mvn clean verify sonar:sonar -Dsonar.projectKey=pep3 -Dsonar.projectName='pep3' -Dsonar.host.url=http://localhost:9000 -Dsonar.token=sqp_1194941fd244a6fd7eb08ddcb13f7a6320d2c6b8"
                 }
             }
         }
@@ -90,7 +90,7 @@ pipeline {
         stage("Build Docker Image backend") {
             steps {
                 dir("LAB-TBD") {
-                    bat "docker build -t derflinger/pep2devsecops_backend ."
+                    bat "docker build -t derflinger/pep3devsecops_backend ."
                 }
             }
         }
@@ -100,7 +100,7 @@ pipeline {
                 dir("LAB-TBD") {
                     withCredentials([string(credentialsId: 'dckrhubpassword', variable: 'dckpass')]) {
                         bat "docker login -u derflinger -p ${dckpass}"
-                        bat "docker push derflinger/pep2devsecops_backend"
+                        bat "docker push derflinger/pep3devsecops_backend"
                     }
                 }
             }
@@ -118,7 +118,7 @@ pipeline {
         stage("Build Docker Image Frontend") {
             steps {
                 dir("Frontend") {
-                    bat "docker build -t derflinger/pep2devsecops_frontend ."
+                    bat "docker build -t derflinger/pep3devsecops_frontend ."
                 }
             }
         }
@@ -128,7 +128,7 @@ pipeline {
                 dir("Frontend") {
                     withCredentials([string(credentialsId: 'dckrhubpassword', variable: 'dckpass')]) {
                         bat "docker login -u derflinger -p ${dckpass}"
-                        bat "docker push derflinger/pep2devsecops_frontend"
+                        bat "docker push derflinger/pep3devsecops_frontend"
                     }
                 }
             }

@@ -10,6 +10,7 @@
 - JaCoCo para cobertura de código
 - Credenciales seguras con Jenkins Credentials
 - Health check automático
+- **Nombres actualizados a PEP3**
 
 ## 🔐 **Configuración Requerida en Jenkins**
 
@@ -39,7 +40,7 @@ Instalar estos plugins en Jenkins:
 ```bash
 # Commit y push de todos los cambios
 git add .
-git commit -m "Pipeline completo con monitoreo y seguridad"
+git commit -m "Pipeline PEP3 completo con monitoreo y seguridad"
 git push origin main
 ```
 
@@ -69,7 +70,8 @@ git push origin main
 
 ### **Endpoints a Verificar:**
 
-- **Aplicación**: http://localhost:8090
+- **Aplicación Backend**: http://localhost:8090
+- **Aplicación Frontend**: http://localhost:3000
 - **Health Check**: http://localhost:8090/actuator/health
 - **Métricas**: http://localhost:8090/actuator/prometheus
 - **Prometheus**: http://localhost:9090
@@ -89,8 +91,8 @@ git push origin main
 3. **Build Backend** - Compilar aplicación
 4. **Test Backend** - Ejecutar tests con cobertura JaCoCo
 5. **SpotBugs Analysis** - Análisis estático de código
-6. **SonarQube Analysis** - Análisis de calidad de código
-7. **Build Docker Images** - Construir imágenes
+6. **SonarQube Analysis** - Análisis de calidad de código (PEP3)
+7. **Build Docker Images** - Construir imágenes (pep3devsecops_backend/frontend)
 8. **Push Docker Images** - Subir al registro con credenciales seguras
 9. **Deploy Applications** - Desplegar apps
 10. **Start Monitoring** - Iniciar Prometheus/Grafana
@@ -138,8 +140,11 @@ git push origin main
 # Verificar contenedores
 docker ps
 
-# Ver logs de la aplicación
+# Ver logs de la aplicación backend
 docker logs pep3devsecops_backend
+
+# Ver logs de la aplicación frontend
+docker logs pep3devsecops_frontend
 
 # Verificar health check
 curl http://localhost:8090/actuator/health
@@ -167,7 +172,8 @@ curl http://localhost:3000/api/health
 
 Al finalizar el pipeline exitosamente:
 
-- ✅ Aplicación desplegada y funcionando en puerto 8090
+- ✅ Aplicación backend desplegada y funcionando en puerto 8090
+- ✅ Aplicación frontend desplegada y funcionando en puerto 3000
 - ✅ Prometheus recolectando métricas en puerto 9090
 - ✅ Grafana mostrando dashboards en puerto 3000
 - ✅ Reportes de seguridad generados (OWASP Dependency Check, ZAP)
