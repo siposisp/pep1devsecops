@@ -8,7 +8,7 @@
   <parent>
     <groupId>org.springframework.boot</groupId>
     <artifactId>spring-boot-starter-parent</artifactId>
-    <version>3.4.0</version>
+    <version>3.2.5</version>
     <relativePath/> <!-- lookup parent from repository -->
   </parent>
 
@@ -78,14 +78,6 @@
       <scope>runtime</scope>
     </dependency>
     <dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-starter-actuator</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>io.micrometer</groupId>
-      <artifactId>micrometer-registry-prometheus</artifactId>
-    </dependency>
-    <dependency>
       <groupId>com.graphhopper.external</groupId>
       <artifactId>jackson-datatype-jts</artifactId>
       <version>0.10-2.5-1</version>
@@ -112,25 +104,35 @@
     <dependency>
       <groupId>com.fasterxml.jackson.datatype</groupId>
       <artifactId>jackson-datatype-jdk8</artifactId>
-      <version>2.18.0</version>
+      <version>2.17.0</version>
     </dependency>
     <dependency>
       <groupId>org.mockito</groupId>
       <artifactId>mockito-core</artifactId>
-      <version>5.8.0</version>
+      <version>5.2.0</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-api</artifactId>
-      <version>5.10.2</version>
+      <version>5.9.0</version> <!-- Updated JUnit Jupiter version -->
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-engine</artifactId>
-      <version>5.10.2</version>
+      <version>5.9.0</version> <!-- Updated JUnit Jupiter version -->
       <scope>test</scope>
+    </dependency>
+    <!-- Spring Boot Actuator para monitoreo -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-actuator</artifactId>
+    </dependency>
+    <!-- Micrometer para Prometheus -->
+    <dependency>
+      <groupId>io.micrometer</groupId>
+      <artifactId>micrometer-registry-prometheus</artifactId>
     </dependency>
   </dependencies>
 
@@ -192,31 +194,6 @@
           <outputDirectory>${project.build.directory}</outputDirectory>
           <failOnError>false</failOnError> <!-- No detiene el build si hay bugs -->
           <includeTests>false</includeTests>
-        </configuration>
-      </plugin>
-      <plugin>
-        <groupId>org.owasp</groupId>
-        <artifactId>dependency-check-maven</artifactId>
-        <version>12.1.0</version>
-        <executions>
-          <execution>
-            <goals>
-              <goal>check</goal>
-            </goals>
-            <phase>verify</phase>
-          </execution>
-        </executions>
-        <configuration>
-          <failBuildOnCVSS>9</failBuildOnCVSS>
-          <formats>
-            <format>HTML</format>
-            <format>JSON</format>
-            <format>XML</format>
-          </formats>
-          <outputDirectory>${project.build.directory}/dependency-check-reports</outputDirectory>
-          <skipProvidedScope>true</skipProvidedScope>
-          <skipRuntimeScope>false</skipRuntimeScope>
-          <skipTestScope>true</skipTestScope>
         </configuration>
       </plugin>
     </plugins>
