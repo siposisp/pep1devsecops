@@ -1,0 +1,256 @@
+pipeline {
+    agent any
+    tools {
+        maven "maven"
+    }
+    environment {
+        APP_PORT = "8090"
+        PROMETHEUS_PORT = "9090"
+        GRAFANA_PORT = "3000"
+    }
+    stages {
+        stage("Checkout") {
+            steps {
+                checkout scmGit(
+                    branches: [[name: '*/main']],
+                    userRemoteConfigs: [[url: 'https://github.com/siposisp/pep1devsecops']]
+                )
+            }
+        }
+
+        stage("OWASP Dependency Check") {
+            steps {
+                dir("LAB-TBD") {
+                    bat "mvn org.owasp:dependency-check-maven:8.4.3:check"
+                }
+            }
+            post {
+                always {
+                    dir("LAB-TBD") {
+                        publishHTML([
+                            allowMissing: false,
+                            alwaysLinkToLastBuild: true,
+                            keepAll: true,
+                            reportDir: 'target/dependency-check-reports',
+                            reportFiles: 'dependency-check-report.html',
+                            reportName: 'OWASP Dependency Check Report'
+                        ])
+                    }
+                }
+            }
+        }
+
+        stage("Build Backend") {
+            steps {
+                dir("LAB-TBD") {
+                    bat "mvn clean install"
+                }
+            }
+        }
+
+        stage("Test Backend") {
+            steps {
+                dir("LAB-TBD") {
+                    bat "mvn test"
+                }
+            }
+            post {
+                always {
+                    dir("LAB-TBD") {
+                        publishHTML([
+                            allowMissing: false,
+                            alwaysLinkToLastBuild: true,
+                            keepAll: true,
+                            reportDir: 'target/site/jacoco',
+                            reportFiles: 'index.html',
+                            reportName: 'JaCoCo Coverage Report'
+                        ])
+                    }
+                }
+            }
+        }
+
+        stage("SpotBugs Analysis") {
+            steps {
+                dir("LAB-TBD") {
+                    bat "mvn spotbugs:spotbugs"
+                    bat "dir target"
+                }
+            }
+        }
+
+        stage("SonarQube Analysis") {
+            steps {
+                dir("LAB-TBD") {
+                    bat "mvn clean verify sonar:sonar -Dsonar.projectKey=pep2 -Dsonar.projectName='pep2' -Dsonar.host.url=http://localhost:9000 -Dsonar.token=sqp_1194941fd244a6fd7eb08ddcb13f7a6320d2c6b8"
+                }
+            }
+        }
+
+        stage("Build Docker Image backend") {
+            steps {
+                dir("LAB-TBD") {
+                    bat "docker build -t derflinger/pep2devsecops_backend ."
+                }
+            }
+        }
+
+        stage("Push Docker Image backend") {
+            steps {
+                dir("LAB-TBD") {
+                    withCredentials([string(credentialsId: 'dckrhubpassword', variable: 'dckpass')]) {
+                        bat "docker login -u derflinger -p ${dckpass}"
+                        bat "docker push derflinger/pep2devsecops_backend"
+                    }
+                }
+            }
+        }
+
+        stage("Build Frontend") {
+            steps {
+                dir("Frontend") {
+                    bat "npm install"
+                    bat "npm run build"
+                }
+            }
+        }
+
+        stage("Build Docker Image Frontend") {
+            steps {
+                dir("Frontend") {
+                    bat "docker build -t derflinger/pep2devsecops_frontend ."
+                }
+            }
+        }
+
+        stage("Push Docker Image frontend") {
+            steps {
+                dir("Frontend") {
+                    withCredentials([string(credentialsId: 'dckrhubpassword', variable: 'dckpass')]) {
+                        bat "docker login -u derflinger -p ${dckpass}"
+                        bat "docker push derflinger/pep2devsecops_frontend"
+                    }
+                }
+            }
+        }
+
+        stage("Deploy Backend with Docker Compose") {
+            steps {
+                dir("LAB-TBD") {
+                    bat "docker-compose down -v || exit 0"
+                    bat "docker-compose up -d --build"
+                }
+            }
+        }
+
+        stage("Deploy Frontend with Docker Compose") {
+            steps {
+                dir("Frontend") {
+                    bat "docker-compose down || exit 0"
+                    bat "docker-compose up -d --build"
+                }
+            }
+        }
+
+        stage("Start Monitoring Stack") {
+            steps {
+                dir("LAB-TBD") {
+                    bat "docker-compose -f docker-compose-monitoring.yml down || exit 0"
+                    bat "docker-compose -f docker-compose-monitoring.yml up -d"
+                }
+            }
+            post {
+                success {
+                    echo "✅ Stack de monitoreo iniciado"
+                    echo "📊 Prometheus disponible en: http://localhost:${PROMETHEUS_PORT}"
+                    echo "📈 Grafana disponible en: http://localhost:${GRAFANA_PORT} (admin/admin)"
+                }
+            }
+        }
+
+        stage("Health Check Application") {
+            steps {
+                script {
+                    // Esperar a que la aplicación esté lista
+                    echo "⏳ Esperando a que la aplicación esté lista..."
+                    sleep(time: 45, unit: 'SECONDS')
+                    
+                    // Verificar que la aplicación esté respondiendo
+                    def response = bat(script: "curl -f http://localhost:${APP_PORT}/actuator/health", returnStdout: true)
+                    if (response.contains("UP")) {
+                        echo "✅ Aplicación está funcionando correctamente"
+                    } else {
+                        error "❌ La aplicación no está respondiendo correctamente"
+                    }
+                }
+            }
+        }
+
+        stage("OWASP ZAP Security Scan") {
+            steps {
+                script {
+                    // Crear directorio para reportes si no existe
+                    bat "mkdir zap-reports 2>nul || exit 0"
+                    
+                    // Ejecutar ZAP Baseline Scan
+                    bat """
+                        docker run --rm -v ${WORKSPACE}/zap-reports:/zap/wrk/:rw -t owasp/zap2docker-stable zap-baseline.py \
+                        -t http://localhost:${APP_PORT} \
+                        -J zap-report.json \
+                        -r zap-report.html \
+                        -I
+                    """
+                }
+            }
+            post {
+                always {
+                    publishHTML([
+                        allowMissing: false,
+                        alwaysLinkToLastBuild: true,
+                        keepAll: true,
+                        reportDir: 'zap-reports',
+                        reportFiles: 'zap-report.html',
+                        reportName: 'OWASP ZAP Security Report'
+                    ])
+                }
+            }
+        }
+
+        stage("Publicar HTML SpotBugs") {
+            steps {
+                publishHTML([
+                    reportName: 'SpotBugs HTML Report',
+                    reportDir: 'LAB-TBD/target/spotbugs-html',
+                    reportFiles: 'index.html',
+                    keepAll: true,
+                    alwaysLinkToLastBuild: true,
+                    allowMissing: true
+                ])
+            }
+        }
+    }
+
+    post {
+        always {
+            bat "docker logout || exit 0"
+            // Limpiar contenedores de monitoreo
+            dir("LAB-TBD") {
+                bat "docker-compose -f docker-compose-monitoring.yml down || exit 0"
+            }
+            // Limpiar imágenes no utilizadas
+            bat "docker image prune -f || exit 0"
+            recordIssues tools: [spotBugs(pattern: '**/spotbugsXml.xml')]
+        }
+        success {
+            echo "🎉 Pipeline ejecutado exitosamente"
+            echo "📊 Reportes disponibles:"
+            echo "   - OWASP Dependency Check: ${BUILD_URL}OWASP_Dependency_Check_Report/"
+            echo "   - JaCoCo Coverage: ${BUILD_URL}JaCoCo_Coverage_Report/"
+            echo "   - SpotBugs: ${BUILD_URL}SpotBugs_HTML_Report/"
+            echo "   - OWASP ZAP Security: ${BUILD_URL}OWASP_ZAP_Security_Report/"
+        }
+        failure {
+            echo "💥 Pipeline falló"
+        }
+    }
+}
