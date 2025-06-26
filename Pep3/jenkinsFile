@@ -20,13 +20,13 @@ pipeline {
 
         stage("OWASP Dependency Check") {
             steps {
-                dir("LAB-TBD") {
+                dir("Pep3/LAB-TBD") {
                     bat "mvn org.owasp:dependency-check-maven:8.4.3:check"
                 }
             }
             post {
                 always {
-                    dir("LAB-TBD") {
+                    dir("Pep3/LAB-TBD") {
                         publishHTML([
                             allowMissing: false,
                             alwaysLinkToLastBuild: true,
@@ -42,7 +42,7 @@ pipeline {
 
         stage("Build Backend") {
             steps {
-                dir("LAB-TBD") {
+                dir("Pep3/LAB-TBD") {
                     bat "mvn clean install"
                 }
             }
@@ -50,13 +50,13 @@ pipeline {
 
         stage("Test Backend") {
             steps {
-                dir("LAB-TBD") {
+                dir("Pep3/LAB-TBD") {
                     bat "mvn test"
                 }
             }
             post {
                 always {
-                    dir("LAB-TBD") {
+                    dir("Pep3/LAB-TBD") {
                         publishHTML([
                             allowMissing: false,
                             alwaysLinkToLastBuild: true,
@@ -72,7 +72,7 @@ pipeline {
 
         stage("SpotBugs Analysis") {
             steps {
-                dir("LAB-TBD") {
+                dir("Pep3/LAB-TBD") {
                     bat "mvn spotbugs:spotbugs"
                     bat "dir target"
                 }
@@ -81,7 +81,7 @@ pipeline {
 
         stage("SonarQube Analysis") {
             steps {
-                dir("LAB-TBD") {
+                dir("Pep3/LAB-TBD") {
                     bat "mvn clean verify sonar:sonar -Dsonar.projectKey=pep3 -Dsonar.projectName='pep3' -Dsonar.host.url=http://localhost:9000 -Dsonar.token=sqp_1194941fd244a6fd7eb08ddcb13f7a6320d2c6b8"
                 }
             }
@@ -89,7 +89,7 @@ pipeline {
 
         stage("Build Docker Image backend") {
             steps {
-                dir("LAB-TBD") {
+                dir("Pep3/LAB-TBD") {
                     bat "docker build -t derflinger/pep3devsecops_backend ."
                 }
             }
@@ -97,7 +97,7 @@ pipeline {
 
         stage("Push Docker Image backend") {
             steps {
-                dir("LAB-TBD") {
+                dir("Pep3/LAB-TBD") {
                     withCredentials([string(credentialsId: 'dckrhubpassword', variable: 'dckpass')]) {
                         bat "docker login -u derflinger -p ${dckpass}"
                         bat "docker push derflinger/pep3devsecops_backend"
@@ -108,7 +108,7 @@ pipeline {
 
         stage("Build Frontend") {
             steps {
-                dir("Frontend") {
+                dir("Pep3/Frontend") {
                     bat "npm install"
                     bat "npm run build"
                 }
@@ -117,7 +117,7 @@ pipeline {
 
         stage("Build Docker Image Frontend") {
             steps {
-                dir("Frontend") {
+                dir("Pep3/Frontend") {
                     bat "docker build -t derflinger/pep3devsecops_frontend ."
                 }
             }
@@ -125,7 +125,7 @@ pipeline {
 
         stage("Push Docker Image frontend") {
             steps {
-                dir("Frontend") {
+                dir("Pep3/Frontend") {
                     withCredentials([string(credentialsId: 'dckrhubpassword', variable: 'dckpass')]) {
                         bat "docker login -u derflinger -p ${dckpass}"
                         bat "docker push derflinger/pep3devsecops_frontend"
@@ -136,7 +136,7 @@ pipeline {
 
         stage("Deploy Backend with Docker Compose") {
             steps {
-                dir("LAB-TBD") {
+                dir("Pep3/LAB-TBD") {
                     bat "docker-compose down -v || exit 0"
                     bat "docker-compose up -d --build"
                 }
@@ -145,7 +145,7 @@ pipeline {
 
         stage("Deploy Frontend with Docker Compose") {
             steps {
-                dir("Frontend") {
+                dir("Pep3/Frontend") {
                     bat "docker-compose down || exit 0"
                     bat "docker-compose up -d --build"
                 }
@@ -154,7 +154,7 @@ pipeline {
 
         stage("Start Monitoring Stack") {
             steps {
-                dir("LAB-TBD") {
+                dir("Pep3/LAB-TBD") {
                     bat "docker-compose -f docker-compose-monitoring.yml down || exit 0"
                     bat "docker-compose -f docker-compose-monitoring.yml up -d"
                 }
@@ -220,7 +220,7 @@ pipeline {
             steps {
                 publishHTML([
                     reportName: 'SpotBugs HTML Report',
-                    reportDir: 'LAB-TBD/target/spotbugs-html',
+                    reportDir: 'Pep3/LAB-TBD/target/spotbugs-html',
                     reportFiles: 'index.html',
                     keepAll: true,
                     alwaysLinkToLastBuild: true,
@@ -234,7 +234,7 @@ pipeline {
         always {
             bat "docker logout || exit 0"
             // Limpiar contenedores de monitoreo
-            dir("LAB-TBD") {
+            dir("Pep3/LAB-TBD") {
                 bat "docker-compose -f docker-compose-monitoring.yml down || exit 0"
             }
             // Limpiar imágenes no utilizadas
