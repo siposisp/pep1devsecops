@@ -27,6 +27,13 @@ public class JwtFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull FilterChain filterChain) throws ServletException, IOException {
 
+        // Skip JWT filter for public endpoints
+        String requestURI = request.getRequestURI();
+        if (requestURI.startsWith("/auth/") || requestURI.startsWith("/emergencies/") || requestURI.startsWith("/emergencyAttribute/")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         final String authorizationHeader = request.getHeader("Authorization");
         final String jwt;
         final String userEmail;
