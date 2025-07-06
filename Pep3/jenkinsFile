@@ -1,106 +1,301 @@
 pipeline {
     agent any
-    tools {
-        maven "maven"
+    
+    environment {
+        DOCKER_REGISTRY = 'derflinger'
+        FRONTEND_IMAGE = 'pep3_frontend'
+        BACKEND_IMAGE = 'pep3_backend'
+        FRONTEND_TAG = 'latest'
+        BACKEND_TAG = 'latest'
+        SONAR_TOKEN = credentials('sonar-token')
+        DOCKER_CREDENTIALS = credentials('docker-hub-credentials')
+        PROJECT_PATH = 'Pep3'
     }
+    
     stages {
-        stage("Checkout") {
+        stage('Checkout') {
             steps {
-                checkout scmGit(
-                    branches: [[name: '*/main']],
-                    userRemoteConfigs: [[url: 'https://github.com/siposisp/pep1devsecops']]
-                )
+                checkout scm
+                echo '✅ Código descargado exitosamente'
+                sh 'ls -la'
+                sh 'ls -la Pep3/'
             }
         }
-
-        stage("Build Backend") {
+        
+        stage('Build Frontend') {
+            when {
+                anyOf {
+                    changeset "Pep3/Frontend/**"
+                    changeset "Pep3/**/package.json"
+                    changeset "Pep3/**/vite.config.js"
+                }
+            }
             steps {
-                dir("LAB-TBD") {
-                    bat "mvn clean install"
+                dir('Pep3/Frontend') {
+                    script {
+                        echo '🔨 Construyendo Frontend...'
+                        sh 'npm ci'
+                        sh 'npm run build'
+                        echo '✅ Frontend construido exitosamente'
+                    }
+                }
+            }
+            post {
+                always {
+                    archiveArtifacts artifacts: 'Pep3/Frontend/dist/**/*', fingerprint: true
                 }
             }
         }
-
-        stage("Test Backend") {
+        
+        stage('Build Backend') {
+            when {
+                anyOf {
+                    changeset "Pep3/LAB-TBD/**"
+                    changeset "Pep3/**/pom.xml"
+                }
+            }
             steps {
-                dir("LAB-TBD") {
-                    bat "mvn test"
+                dir('Pep3/LAB-TBD') {
+                    script {
+                        echo '🔨 Construyendo Backend...'
+                        sh 'mvn clean compile'
+                        sh 'mvn test'
+                        sh 'mvn package -DskipTests'
+                        echo '✅ Backend construido exitosamente'
+                    }
+                }
+            }
+            post {
+                always {
+                    archiveArtifacts artifacts: 'Pep3/LAB-TBD/target/*.jar', fingerprint: true
+                    junit 'Pep3/LAB-TBD/target/surefire-reports/*.xml'
                 }
             }
         }
-        stage("SonarQube Analysis"){
-            steps{
-                dir("LAB-TBD"){
-                    bat "mvn clean verify sonar:sonar  -Dsonar.projectKey=lab-tbd  -Dsonar.projectName=\"LAB TBD\"  -Dsonar.host.url=http://localhost:9000  -Dsonar.token=sqa_98387ca1b4bd116e325d4f605a0fcd2dec439525"
+        
+        stage('Security Scan') {
+            parallel {
+                stage('SonarQube Analysis') {
+                    steps {
+                        script {
+                            echo '🔍 Ejecutando análisis de SonarQube...'
+                            withSonarQubeEnv('SonarQube') {
+                                dir('Pep3/LAB-TBD') {
+                                    sh 'mvn sonar:sonar -Dsonar.projectKey=pep3-backend -Dsonar.host.url=http://localhost:9000 -Dsonar.login=${SONAR_TOKEN}'
+                                }
+                            }
+                        }
+                    }
                 }
-            }
-        }        
-
-        stage("Build Docker Image Backend") {
-            steps {
-                dir("LAB-TBD") {
-                    bat "docker build -t niko085/pep2devsecops_backend ."
+                
+                stage('Dependency Check') {
+                    steps {
+                        script {
+                            echo '🔍 Verificando dependencias vulnerables...'
+                            dir('Pep3/LAB-TBD') {
+                                sh 'mvn org.owasp:dependency-check-maven:check'
+                            }
+                        }
+                    }
                 }
-            }
-        }
-
-        stage("Push Docker Image Backend") {
-            steps {
-                dir("LAB-TBD") {
-                    bat "docker login -u niko085 -p Nico"
-                    bat "docker push niko085/pep2devsecops_backend"
-                }
-            }
-        }
-
-        stage("Build Frontend") {
-            steps {
-                dir("Frontend") {
-                    bat "npm install"
-                    bat "npm run build"
-                }
-            }
-        }
-
-        stage("Build Docker Image Frontend") {
-            steps {
-                dir("Frontend") {
-                    bat "docker build -t niko085/pep2devsecops_frontend ."
-                }
-            }
-        }
-
-        stage("Push Docker Image Frontend") {
-            steps {
-                dir("Frontend") {
-                    bat "docker login -u niko085 -p Nico"
-                    bat "docker push niko085/pep2devsecops_frontend"
+                
+                stage('SpotBugs Analysis') {
+                    steps {
+                        script {
+                            echo '🔍 Ejecutando análisis de SpotBugs...'
+                            dir('Pep3/LAB-TBD') {
+                                sh 'mvn spotbugs:spotbugs'
+                            }
+                        }
+                    }
                 }
             }
         }
-
-        stage("Deploy Backend") {
+        
+        stage('Build Docker Images') {
             steps {
-                dir("LAB-TBD") {
-                    bat "docker-compose down || exit 0"
-                    bat "docker-compose up -d --build"
+                script {
+                    echo '🐳 Construyendo imágenes Docker...'
+                    
+                    // Build Frontend Image
+                    dir('Pep3/Frontend') {
+                        sh """
+                            docker build -t ${DOCKER_REGISTRY}/${FRONTEND_IMAGE}:${FRONTEND_TAG} .
+                            docker tag ${DOCKER_REGISTRY}/${FRONTEND_IMAGE}:${FRONTEND_TAG} ${DOCKER_REGISTRY}/${FRONTEND_IMAGE}:${BUILD_NUMBER}
+                        """
+                    }
+                    
+                    // Build Backend Image
+                    dir('Pep3/LAB-TBD') {
+                        sh """
+                            docker build -t ${DOCKER_REGISTRY}/${BACKEND_IMAGE}:${BACKEND_TAG} .
+                            docker tag ${DOCKER_REGISTRY}/${BACKEND_IMAGE}:${BACKEND_TAG} ${DOCKER_REGISTRY}/${BACKEND_IMAGE}:${BUILD_NUMBER}
+                        """
+                    }
+                    
+                    echo '✅ Imágenes Docker construidas exitosamente'
                 }
             }
         }
-
-        stage("Deploy Frontend") {
+        
+        stage('Push Docker Images') {
+            when {
+                branch 'main'
+            }
             steps {
-                dir("Frontend") {
-                    bat "docker-compose down || exit 0"
-                    bat "docker-compose up -d --build"
+                script {
+                    echo '📤 Subiendo imágenes a Docker Hub...'
+                    
+                    withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
+                        sh 'echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin'
+                        
+                        sh """
+                            docker push ${DOCKER_REGISTRY}/${FRONTEND_IMAGE}:${FRONTEND_TAG}
+                            docker push ${DOCKER_REGISTRY}/${FRONTEND_IMAGE}:${BUILD_NUMBER}
+                            docker push ${DOCKER_REGISTRY}/${BACKEND_IMAGE}:${BACKEND_TAG}
+                            docker push ${DOCKER_REGISTRY}/${BACKEND_IMAGE}:${BUILD_NUMBER}
+                        """
+                    }
+                    
+                    echo '✅ Imágenes subidas exitosamente'
+                }
+            }
+        }
+        
+        stage('Deploy to Development') {
+            when {
+                branch 'develop'
+            }
+            steps {
+                script {
+                    echo '🚀 Desplegando en entorno de desarrollo...'
+                    
+                    dir('Pep3') {
+                        // Stop existing containers
+                        sh 'docker-compose down || true'
+                        
+                        // Pull latest images
+                        sh 'docker-compose pull'
+                        
+                        // Start services
+                        sh 'docker-compose up -d'
+                        
+                        // Wait for services to be healthy
+                        sh '''
+                            timeout 300 bash -c 'until curl -f http://localhost:8097/actuator/health; do sleep 5; done'
+                            timeout 300 bash -c 'until curl -f http://localhost:3000/health; do sleep 5; done'
+                        '''
+                    }
+                    
+                    echo '✅ Despliegue en desarrollo completado'
+                }
+            }
+        }
+        
+        stage('Deploy to Production') {
+            when {
+                branch 'main'
+            }
+            steps {
+                script {
+                    echo '🚀 Desplegando en producción...'
+                    
+                    dir('Pep3') {
+                        // Blue-Green deployment strategy
+                        def currentColor = sh(script: 'docker ps --filter "name=pep3" --format "{{.Names}}" | grep -o "blue\|green" | head -1', returnStdout: true).trim()
+                        def newColor = currentColor == 'blue' ? 'green' : 'blue'
+                        
+                        sh """
+                            # Deploy new version
+                            docker-compose -f docker-compose.yml -f docker-compose.${newColor}.yml up -d
+                            
+                            # Health check
+                            timeout 300 bash -c 'until curl -f http://localhost:8097/actuator/health; do sleep 5; done'
+                            timeout 300 bash -c 'until curl -f http://localhost:3000/health; do sleep 5; done'
+                            
+                            # Switch traffic
+                            docker-compose -f docker-compose.yml -f docker-compose.${newColor}.yml up -d nginx
+                            
+                            # Stop old version
+                            docker-compose -f docker-compose.yml -f docker-compose.${currentColor}.yml down
+                        """
+                    }
+                    
+                    echo '✅ Despliegue en producción completado'
+                }
+            }
+        }
+        
+        stage('Integration Tests') {
+            steps {
+                script {
+                    echo '🧪 Ejecutando tests de integración...'
+                    
+                    // Wait for services to be ready
+                    sh 'sleep 30'
+                    
+                    // Run integration tests
+                    dir('Pep3/LAB-TBD') {
+                        sh 'mvn test -Dtest=*IntegrationTest'
+                    }
+                    
+                    echo '✅ Tests de integración completados'
+                }
+            }
+            post {
+                always {
+                    junit 'Pep3/LAB-TBD/target/surefire-reports/*.xml'
+                }
+            }
+        }
+        
+        stage('Performance Tests') {
+            when {
+                branch 'main'
+            }
+            steps {
+                script {
+                    echo '⚡ Ejecutando tests de rendimiento...'
+                    
+                    // Run performance tests with JMeter or similar
+                    sh '''
+                        # Example with Apache Bench
+                        ab -n 1000 -c 10 http://localhost:3000/
+                        ab -n 1000 -c 10 http://localhost:8097/actuator/health
+                    '''
+                    
+                    echo '✅ Tests de rendimiento completados'
                 }
             }
         }
     }
-
+    
     post {
         always {
-            bat "docker logout"
+            echo '🧹 Limpiando workspace...'
+            cleanWs()
+        }
+        
+        success {
+            echo '🎉 Pipeline ejecutado exitosamente!'
+            emailext (
+                subject: "Pipeline PEP3 #${BUILD_NUMBER} - SUCCESS",
+                body: "El pipeline se ejecutó exitosamente. Build: ${BUILD_URL}",
+                to: "${env.BUILD_USER_EMAIL}"
+            )
+        }
+        
+        failure {
+            echo '❌ Pipeline falló!'
+            emailext (
+                subject: "Pipeline PEP3 #${BUILD_NUMBER} - FAILURE",
+                body: "El pipeline falló. Build: ${BUILD_URL}",
+                to: "${env.BUILD_USER_EMAIL}"
+            )
+        }
+        
+        unstable {
+            echo '⚠️ Pipeline inestable!'
         }
     }
 }

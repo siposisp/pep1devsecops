@@ -1,9 +1,17 @@
 version: '3.8'
 
 services:
-  front-devsecops:
-    image: derflinger/pep2devsecops_frontend
-    container_name: pep2devsecops_frontend
+  front-pep3:
+    image: derflinger/pep3_frontend
+    container_name: pep3_frontend
     ports:
       - "3000:80"
     restart: always
+    networks:
+      - pep3-network
+    depends_on:
+      - backend-pep3
+
+networks:
+  pep3-network:
+    external: true
