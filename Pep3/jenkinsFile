@@ -1,346 +1,117 @@
 pipeline {
     agent any
     
-    environment {
-        DOCKER_REGISTRY = 'derflinger'
-        FRONTEND_IMAGE = 'pep3_frontend'
-        BACKEND_IMAGE = 'pep3_backend'
-        FRONTEND_TAG = 'latest'
-        BACKEND_TAG = 'latest'
-        SONAR_TOKEN = credentials('sonar-token')
-        DOCKER_CREDENTIALS = credentials('docker-hub-credentials')
-        PROJECT_PATH = 'Pep3'
+    tools {
+        maven "maven"
     }
     
     stages {
-        stage('Checkout') {
+        stage("Checkout") {
             steps {
-                checkout scm
-                echo '✅ Código descargado exitosamente'
-                sh 'ls -la'
-                sh 'ls -la Pep3/'
+                checkout scmGit(
+                    branches: [[name: '*/main']],
+                    userRemoteConfigs: [[url: 'https://github.com/siposisp/pep1devsecops']]
+                )
             }
         }
-        
-        stage('Build Frontend') {
-            when {
-                anyOf {
-                    changeset "Pep3/Frontend/**"
-                    changeset "Pep3/**/package.json"
-                    changeset "Pep3/**/vite.config.js"
-                }
-            }
+
+        stage("Build Backend") {
             steps {
-                dir('Pep3/Frontend') {
-                    script {
-                        echo '🔨 Construyendo Frontend...'
-                        sh 'npm ci'
-                        sh 'npm run build'
-                        echo '✅ Frontend construido exitosamente'
-                    }
-                }
-            }
-            post {
-                always {
-                    archiveArtifacts artifacts: 'Pep3/Frontend/dist/**/*', fingerprint: true
+                dir("Pep3/LAB-TBD") {
+                    bat "mvn clean install"
                 }
             }
         }
-        
-        stage('Build Backend') {
-            when {
-                anyOf {
-                    changeset "Pep3/LAB-TBD/**"
-                    changeset "Pep3/**/pom.xml"
-                }
-            }
+
+        stage("Test Backend") {
             steps {
-                dir('Pep3/LAB-TBD') {
-                    script {
-                        echo '🔨 Construyendo Backend...'
-                        sh 'mvn clean compile'
-                        echo '✅ Backend compilado exitosamente'
-                    }
-                }
-            }
-            post {
-                always {
-                    archiveArtifacts artifacts: 'Pep3/LAB-TBD/target/*.jar', fingerprint: true
+                dir("Pep3/LAB-TBD") {
+                    bat "mvn test"
                 }
             }
         }
-        
-        stage('Test Backend') {
-            when {
-                anyOf {
-                    changeset "Pep3/LAB-TBD/**"
-                    changeset "Pep3/**/pom.xml"
-                }
-            }
+
+        stage("SonarQube Analysis") {
             steps {
-                dir('Pep3/LAB-TBD') {
-                    script {
-                        echo '🧪 Ejecutando tests del Backend...'
-                        try {
-                            sh 'mvn test'
-                            echo '✅ Tests del Backend completados exitosamente'
-                        } catch (Exception e) {
-                            echo '⚠️ Algunos tests fallaron, pero continuando con el pipeline...'
-                            echo 'Error: ' + e.getMessage()
-                        }
-                    }
-                }
-            }
-            post {
-                always {
-                    junit 'Pep3/LAB-TBD/target/surefire-reports/*.xml'
-                }
-            }
-        }
-        
-        stage('Security Scan') {
-            parallel {
-                stage('SonarQube Analysis') {
-                    steps {
-                        script {
-                            echo '🔍 Ejecutando análisis de SonarQube...'
-                            try {
-                                withSonarQubeEnv('SonarQube') {
-                                    dir('Pep3/LAB-TBD') {
-                                        sh 'mvn sonar:sonar -Dsonar.projectKey=pep3-backend -Dsonar.host.url=http://localhost:9000 -Dsonar.login=${SONAR_TOKEN}'
-                                    }
-                                }
-                            } catch (Exception e) {
-                                echo '⚠️ Análisis de SonarQube falló, pero continuando...'
-                            }
-                        }
-                    }
-                }
-                
-                stage('Dependency Check') {
-                    steps {
-                        script {
-                            echo '🔍 Verificando dependencias vulnerables...'
-                            try {
-                                dir('Pep3/LAB-TBD') {
-                                    sh 'mvn org.owasp:dependency-check-maven:check'
-                                }
-                            } catch (Exception e) {
-                                echo '⚠️ Dependency Check falló, pero continuando...'
-                            }
-                        }
-                    }
-                }
-                
-                stage('SpotBugs Analysis') {
-                    steps {
-                        script {
-                            echo '🔍 Ejecutando análisis de SpotBugs...'
-                            try {
-                                dir('Pep3/LAB-TBD') {
-                                    sh 'mvn spotbugs:spotbugs'
-                                }
-                            } catch (Exception e) {
-                                echo '⚠️ SpotBugs falló, pero continuando...'
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        
-        stage('Build Docker Images') {
-            steps {
-                script {
-                    echo '🐳 Construyendo imágenes Docker...'
-                    
-                    // Build Frontend Image
-                    dir('Pep3/Frontend') {
-                        sh """
-                            docker build -t ${DOCKER_REGISTRY}/${FRONTEND_IMAGE}:${FRONTEND_TAG} .
-                            docker tag ${DOCKER_REGISTRY}/${FRONTEND_IMAGE}:${FRONTEND_TAG} ${DOCKER_REGISTRY}/${FRONTEND_IMAGE}:${BUILD_NUMBER}
-                        """
-                    }
-                    
-                    // Build Backend Image
-                    dir('Pep3/LAB-TBD') {
-                        sh """
-                            docker build -t ${DOCKER_REGISTRY}/${BACKEND_IMAGE}:${BACKEND_TAG} .
-                            docker tag ${DOCKER_REGISTRY}/${BACKEND_IMAGE}:${BACKEND_TAG} ${DOCKER_REGISTRY}/${BACKEND_IMAGE}:${BUILD_NUMBER}
-                        """
-                    }
-                    
-                    echo '✅ Imágenes Docker construidas exitosamente'
-                }
-            }
-        }
-        
-        stage('Push Docker Images') {
-            when {
-                branch 'main'
-            }
-            steps {
-                script {
-                    echo '📤 Subiendo imágenes a Docker Hub...'
-                    
-                    withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
-                        sh 'echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin'
-                        
-                        sh """
-                            docker push ${DOCKER_REGISTRY}/${FRONTEND_IMAGE}:${FRONTEND_TAG}
-                            docker push ${DOCKER_REGISTRY}/${FRONTEND_IMAGE}:${BUILD_NUMBER}
-                            docker push ${DOCKER_REGISTRY}/${BACKEND_IMAGE}:${BACKEND_TAG}
-                            docker push ${DOCKER_REGISTRY}/${BACKEND_IMAGE}:${BUILD_NUMBER}
-                        """
-                    }
-                    
-                    echo '✅ Imágenes subidas exitosamente'
-                }
-            }
-        }
-        
-        stage('Deploy to Development') {
-            when {
-                branch 'develop'
-            }
-            steps {
-                script {
-                    echo '🚀 Desplegando en entorno de desarrollo...'
-                    
-                    dir('Pep3') {
-                        // Stop existing containers
-                        sh 'docker-compose down || true'
-                        
-                        // Pull latest images
-                        sh 'docker-compose pull'
-                        
-                        // Start services
-                        sh 'docker-compose up -d'
-                        
-                        // Wait for services to be healthy
-                        sh '''
-                            timeout 300 bash -c 'until curl -f http://localhost:8097/actuator/health; do sleep 5; done'
-                            timeout 300 bash -c 'until curl -f http://localhost:3000/health; do sleep 5; done'
+                dir("Pep3/LAB-TBD") {
+                    withCredentials([string(credentialsId: 'sonar-token-pep3', variable: 'SONAR_TOKEN')]) {
+                        bat '''
+                        mvn clean verify sonar:sonar ^
+                            -Dsonar.projectKey=pep3 ^
+                            -Dsonar.projectName="pep3" ^
+                            -Dsonar.host.url=http://localhost:9000 ^
+                            -Dsonar.token=%SONAR_TOKEN%
                         '''
                     }
-                    
-                    echo '✅ Despliegue en desarrollo completado'
                 }
             }
         }
-        
-        stage('Deploy to Production') {
-            when {
-                branch 'main'
-            }
+
+        stage("Build Docker Image Backend") {
             steps {
-                script {
-                    echo '🚀 Desplegando en producción...'
-                    
-                    dir('Pep3') {
-                        // Blue-Green deployment strategy
-                        def currentColor = sh(script: 'docker ps --filter "name=pep3" --format "{{.Names}}" | grep -o "blue\|green" | head -1', returnStdout: true).trim()
-                        def newColor = currentColor == 'blue' ? 'green' : 'blue'
-                        
-                        sh """
-                            # Deploy new version
-                            docker-compose -f docker-compose.yml -f docker-compose.${newColor}.yml up -d
-                            
-                            # Health check
-                            timeout 300 bash -c 'until curl -f http://localhost:8097/actuator/health; do sleep 5; done'
-                            timeout 300 bash -c 'until curl -f http://localhost:3000/health; do sleep 5; done'
-                            
-                            # Switch traffic
-                            docker-compose -f docker-compose.yml -f docker-compose.${newColor}.yml up -d nginx
-                            
-                            # Stop old version
-                            docker-compose -f docker-compose.yml -f docker-compose.${currentColor}.yml down
-                        """
-                    }
-                    
-                    echo '✅ Despliegue en producción completado'
+                dir("Pep3/LAB-TBD") {
+                    bat "docker build -t derflinger/pep3_backend ."
                 }
             }
         }
-        
-        stage('Integration Tests') {
+
+        stage("Push Docker Image Backend") {
             steps {
-                script {
-                    echo '🧪 Ejecutando tests de integración...'
-                    
-                    // Wait for services to be ready
-                    sh 'sleep 30'
-                    
-                    // Run integration tests
-                    dir('Pep3/LAB-TBD') {
-                        try {
-                            sh 'mvn test -Dtest=*IntegrationTest'
-                        } catch (Exception e) {
-                            echo '⚠️ Tests de integración fallaron, pero continuando...'
-                        }
-                    }
-                    
-                    echo '✅ Tests de integración completados'
-                }
-            }
-            post {
-                always {
-                    junit 'Pep3/LAB-TBD/target/surefire-reports/*.xml'
+                withCredentials([string(credentialsId: 'dckrhubpassword', variable: 'dckpass')]) {
+                    bat "docker login -u derflinger -p ${dckpass}"
+                    bat "docker push derflinger/pep3_backend"
                 }
             }
         }
-        
-        stage('Performance Tests') {
-            when {
-                branch 'main'
-            }
+
+        stage("Build Frontend") {
             steps {
-                script {
-                    echo '⚡ Ejecutando tests de rendimiento...'
-                    
-                    // Run performance tests with JMeter or similar
-                    try {
-                        sh '''
-                            # Example with Apache Bench
-                            ab -n 1000 -c 10 http://localhost:3000/
-                            ab -n 1000 -c 10 http://localhost:8097/actuator/health
-                        '''
-                    } catch (Exception e) {
-                        echo '⚠️ Tests de rendimiento fallaron, pero continuando...'
-                    }
-                    
-                    echo '✅ Tests de rendimiento completados'
+                dir("Pep3/Frontend") {
+                    bat "npm install"
+                    bat "npm run build"
+                }
+            }
+        }
+
+        stage("Build Docker Image Frontend") {
+            steps {
+                dir("Pep3/Frontend") {
+                    bat "docker build -t derflinger/pep3_frontend ."
+                }
+            }
+        }
+
+        stage("Push Docker Image Frontend") {
+            steps {
+                withCredentials([string(credentialsId: 'dckrhubpassword', variable: 'dckpass')]) {
+                    bat "docker login -u derflinger -p ${dckpass}"
+                    bat "docker push derflinger/pep3_frontend"
+                }
+            }
+        }
+
+        stage("Deploy Backend") {
+            steps {
+                dir("Pep3/LAB-TBD") {
+                    bat "docker-compose down || exit 0"
+                    bat "docker-compose up -d --build"
+                }
+            }
+        }
+
+        stage("Deploy Frontend") {
+            steps {
+                dir("Pep3/Frontend") {
+                    bat "docker-compose down || exit 0"
+                    bat "docker-compose up -d --build"
                 }
             }
         }
     }
-    
+
     post {
         always {
-            echo '🧹 Limpiando workspace...'
-            cleanWs()
-        }
-        
-        success {
-            echo '🎉 Pipeline ejecutado exitosamente!'
-            emailext (
-                subject: "Pipeline PEP3 #${BUILD_NUMBER} - SUCCESS",
-                body: "El pipeline se ejecutó exitosamente. Build: ${BUILD_URL}",
-                to: "${env.BUILD_USER_EMAIL}"
-            )
-        }
-        
-        failure {
-            echo '❌ Pipeline falló!'
-            emailext (
-                subject: "Pipeline PEP3 #${BUILD_NUMBER} - FAILURE",
-                body: "El pipeline falló. Build: ${BUILD_URL}",
-                to: "${env.BUILD_USER_EMAIL}"
-            )
-        }
-        
-        unstable {
-            echo '⚠️ Pipeline inestable!'
+            bat "docker logout"
         }
     }
-}
+} 
