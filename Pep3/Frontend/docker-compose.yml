@@ -9,8 +9,6 @@ services:
     restart: always
     networks:
       - pep3-network
-    depends_on:
-      - backend-pep3
 
 networks:
   pep3-network:

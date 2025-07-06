@@ -50,7 +50,7 @@ pipeline {
         stage("Build Docker Image Backend") {
             steps {
                 dir("Pep3/LAB-TBD") {
-                    bat "docker build -t derflinger/pep3_backend ."
+                    bat "docker build -t derflinger/pep3devsecops_backend ."
                 }
             }
         }
@@ -59,7 +59,7 @@ pipeline {
             steps {
                 withCredentials([string(credentialsId: 'dckrhubpassword', variable: 'dckpass')]) {
                     bat "docker login -u derflinger -p ${dckpass}"
-                    bat "docker push derflinger/pep3_backend"
+                    bat "docker push derflinger/pep3devsecops_backend"
                 }
             }
         }
@@ -76,7 +76,7 @@ pipeline {
         stage("Build Docker Image Frontend") {
             steps {
                 dir("Pep3/Frontend") {
-                    bat "docker build -t derflinger/pep3_frontend ."
+                    bat "docker build -t derflinger/pep3devsecops_frontend ."
                 }
             }
         }
@@ -85,8 +85,14 @@ pipeline {
             steps {
                 withCredentials([string(credentialsId: 'dckrhubpassword', variable: 'dckpass')]) {
                     bat "docker login -u derflinger -p ${dckpass}"
-                    bat "docker push derflinger/pep3_frontend"
+                    bat "docker push derflinger/pep3devsecops_frontend"
                 }
+            }
+        }
+
+        stage("Create Docker Network") {
+            steps {
+                bat "docker network create pep3-network || echo Network already exists"
             }
         }
 
