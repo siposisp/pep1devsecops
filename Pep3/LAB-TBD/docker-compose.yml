@@ -1,55 +1,27 @@
 version: "3.8"
 
 services:
-  postgres-db:
-    image: postgres
-    restart: always
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    environment:
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: LabTBD-2-2024
-      POSTGRES_USER: postgres
-    ports:
-      - "5432:5432"
-    networks:
-      - pep3-network
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-
-  backend-pep3:
-    container_name: pep3_backend
-    image: derflinger/pep3devsecops_backend
+  app:
+    container_name: pep2devsecops_backend
+    image: derflinger/pep2devsecops_backend
     ports:
       - "8097:8097"
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-db:5432/LabTBD-2-2024
-      - SPRING_DATASOURCE_USERNAME=postgres
-      - SPRING_DATASOURCE_PASSWORD=postgres
+      # Conexión a Neon Database
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://ep-small-star-a29vm0le-pooler.eu-central-1.aws.neon.tech:5432/neondb?sslmode=require
+      - SPRING_DATASOURCE_USERNAME=neondb_owner
+      - SPRING_DATASOURCE_PASSWORD=npg_34UwzufKSYHt
       - SPRING_PROFILES_ACTIVE=docker
-      - MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE=health,info,metrics,prometheus
-      - MANAGEMENT_ENDPOINT_HEALTH_SHOW-DETAILS=always
-    deploy:
-      restart_policy:
-        condition: on-failure
-    depends_on:
-      postgres-db:
-        condition: service_healthy
-    networks:
-      - pep3-network
+      - spring.sql.init.mode=never        # evita inicialización automática
+      - spring.jpa.hibernate.ddl-auto=none
+      - JAVA_OPTS=-Xmx512m -Xms256m
+    restart: on-failure
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8097/actuator/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:8097/emergencies/all"]
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 40s
 
-volumes:
-  postgres_data:
-
-networks:
-  pep3-network:
-    external: true
+# Ya no necesitamos el contenedor de PostgreSQL ni volúmenes
+# volumes:
+#   postgres_data:

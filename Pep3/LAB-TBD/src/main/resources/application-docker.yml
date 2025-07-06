@@ -1,0 +1,28 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://ep-small-star-a29vm0le-pooler.eu-central-1.aws.neon.tech:5432/neondb?sslmode=require
+    username: neondb_owner
+    password: npg_34UwzufKSYHt
+    driver-class-name: org.postgresql.Driver
+  
+  jpa:
+    hibernate:
+      ddl-auto: none
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: false
+        dialect: org.hibernate.spatial.dialect.postgis.PostgisDialect
+  
+  sql:
+    init:
+      mode: never
+      
+
+server:
+  port: 8097
+
+logging:
+  level:
+    org.springframework.jdbc.datasource.init: INFO
+    org.hibernate.SQL: INFO
