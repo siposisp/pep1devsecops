@@ -22,7 +22,7 @@ services:
 
   backend-pep3:
     container_name: pep3_backend
-    image: derflinger/pep3_backend
+    image: derflinger/pep3devsecops_backend
     ports:
       - "8097:8097"
     environment:

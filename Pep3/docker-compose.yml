@@ -28,7 +28,7 @@ services:
   # Spring Boot Backend
   backend-pep3:
     container_name: pep3_backend
-    image: derflinger/pep3_backend
+    image: derflinger/pep3devsecops_backend
     ports:
       - "8097:8097"
     environment:
@@ -55,7 +55,7 @@ services:
 
   # Vue.js Frontend
   front-pep3:
-    image: derflinger/pep3_frontend
+    image: derflinger/pep3devsecops_frontend
     container_name: pep3_frontend
     ports:
       - "3000:80"

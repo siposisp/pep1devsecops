@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   front-pep3:
-    image: derflinger/pep3_frontend
+    image: derflinger/pep3devsecops_frontend
     container_name: pep3_frontend
     ports:
       - "3000:80"
