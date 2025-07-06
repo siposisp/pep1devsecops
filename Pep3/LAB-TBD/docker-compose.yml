@@ -2,7 +2,7 @@ version: "3.8"
 
 services:
   postgres-db:
-    image: postgres:15
+    image: postgres
     restart: always
     volumes:
       - postgres_data:/var/lib/postgresql/data
@@ -11,11 +11,6 @@ services:
       POSTGRES_DB: LabTBD-2-2024
     ports:
       - "5432:5432"
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
 
   app:
     container_name: pep2devsecops_backend
@@ -23,83 +18,14 @@ services:
     ports:
       - "8097:8097"
     environment:
-      - SPRING_PROFILES_ACTIVE=docker
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-db:5432/LabTBD-2-2024
       - SPRING_DATASOURCE_USERNAME=postgres
       - SPRING_DATASOURCE_PASSWORD=postgres
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8097/actuator/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 60s
-    depends_on:
-      postgres-db:
-        condition: service_healthy
-    restart: unless-stopped
-
-  prometheus:
-    image: prom/prometheus:latest
-    container_name: prometheus
-    ports:
-      - "9090:9090"
-    volumes:
-      - ./prometheus.yml:/etc/prometheus/prometheus.yml
-      - prometheus_data:/prometheus
-    command:
-      - '--config.file=/etc/prometheus/prometheus.yml'
-      - '--storage.tsdb.path=/prometheus'
-      - '--web.console.libraries=/etc/prometheus/console_libraries'
-      - '--web.console.templates=/etc/prometheus/consoles'
-      - '--storage.tsdb.retention.time=200h'
-      - '--web.enable-lifecycle'
-    restart: unless-stopped
-
-  grafana:
-    image: grafana/grafana:latest
-    container_name: grafana
-    ports:
-      - "3001:3000"
-    environment:
-      - GF_SECURITY_ADMIN_USER=admin
-      - GF_SECURITY_ADMIN_PASSWORD=admin
-      - GF_USERS_ALLOW_SIGN_UP=false
-    volumes:
-      - grafana_data:/var/lib/grafana
-      - ./grafana/provisioning/datasources:/etc/grafana/provisioning/datasources
-      - ./grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards
-      - ./grafana/dashboards:/etc/grafana/provisioning/dashboards
-    restart: unless-stopped
-    depends_on:
-      - prometheus
-
-  node-exporter:
-    image: prom/node-exporter:latest
-    container_name: node-exporter
-    ports:
-      - "9100:9100"
-    volumes:
-      - /proc:/host/proc:ro
-      - /sys:/host/sys:ro
-      - /:/rootfs:ro
-    command:
-      - '--path.procfs=/host/proc'
-      - '--path.sysfs=/host/sys'
-      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
-    restart: unless-stopped
-
-  postgres-exporter:
-    image: prometheuscommunity/postgres-exporter:latest
-    container_name: postgres-exporter
-    ports:
-      - "9187:9187"
-    environment:
-      DATA_SOURCE_NAME: "postgresql://postgres:postgres@postgres-db:5432/LabTBD-2-2024?sslmode=disable"
-    restart: unless-stopped
+    deploy:
+      restart_policy:
+        condition: on-failure
     depends_on:
       - postgres-db
 
 volumes:
   postgres_data:
-  prometheus_data:
-  grafana_data:

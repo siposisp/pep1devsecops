@@ -15,70 +15,47 @@ pipeline {
 
         stage("Build Backend") {
             steps {
-                dir("Pep3/LAB-TBD") {
-                    bat "mvn clean compile"
-                    bat "mvn package -DskipTests"
+                dir("LAB-TBD") {
+                    bat "mvn clean install"
                 }
             }
         }
 
         stage("Test Backend") {
             steps {
-                dir("Pep3/LAB-TBD") {
-                    bat "mvn test -Dspring.profiles.active=test || echo 'Tests fallaron pero continuando...'"
+                dir("LAB-TBD") {
+                    bat "mvn test"
                 }
             }
         }
-        
-        stage("SpotBugs Analysis") {
+        stage("SonarQube Analysis"){
+            steps{
+                dir("LAB-TBD"){
+                    bat "mvn clean verify sonar:sonar  -Dsonar.projectKey=lab-tbd  -Dsonar.projectName=\"LAB TBD\"  -Dsonar.host.url=http://localhost:9000  -Dsonar.token=sqa_98387ca1b4bd116e325d4f605a0fcd2dec439525"
+                }
+            }
+        }        
+
+        stage("Build Docker Image Backend") {
             steps {
-                dir("Pep3/LAB-TBD") {
-                    bat "mvn verify -DskipTests || echo 'Maven verify falló pero continuando...'"
-                    
-                    script {
-                        def exitCode = bat(script: "generate-spotbugs-html.bat", returnStatus: true)
-                        if (exitCode != 0) {
-                            echo "⚠️ SpotBugs HTML terminó con código de salida: ${exitCode}, pero se continuará con la pipeline."
-                        }
-                    }
-        
-                    bat "dir target"
-                    bat "dir target\\spotbugs-html || echo 'Directorio spotbugs-html no encontrado'"
-                    bat "dir target\\spotbugsXml.xml || echo 'Archivo XML no encontrado'"
+                dir("LAB-TBD") {
+                    bat "docker build -t niko085/pep2devsecops_backend ."
                 }
             }
         }
-        
-        stage("SonarQube Analysis") {
+
+        stage("Push Docker Image Backend") {
             steps {
-                dir("Pep3/LAB-TBD") {
-                    bat "mvn clean verify sonar:sonar  -Dsonar.projectKey=pep2 -Dsonar.projectName='pep2'  -Dsonar.host.url=http://localhost:9000  -Dsonar.token=sqp_1194941fd244a6fd7eb08ddcb13f7a6320d2c6b8"
-                }
-            }
-        }
-        
-        stage("Build Docker Image backend") {
-            steps {
-                dir("Pep3/LAB-TBD") {
-                    bat "docker build -t derflinger/pep2devsecops_backend ."
-                }
-            }
-        }
-        
-        stage("Push Docker Image backend") {
-            steps {
-                dir("Pep3/LAB-TBD") {
-                    withCredentials([string(credentialsId: 'dckrhubpassword', variable: 'dckpass')]) {
-                        bat "docker login -u derflinger -p ${dckpass}"
-                        bat "docker push derflinger/pep2devsecops_backend"
-                    }
+                dir("LAB-TBD") {
+                    bat "docker login -u niko085 -p Nico"
+                    bat "docker push niko085/pep2devsecops_backend"
                 }
             }
         }
 
         stage("Build Frontend") {
             steps {
-                dir("Pep3/Frontend") {
+                dir("Frontend") {
                     bat "npm install"
                     bat "npm run build"
                 }
@@ -87,80 +64,35 @@ pipeline {
 
         stage("Build Docker Image Frontend") {
             steps {
-                dir("Pep3/Frontend") {
-                    bat "docker build -t derflinger/pep2devsecops_frontend ."
+                dir("Frontend") {
+                    bat "docker build -t niko085/pep2devsecops_frontend ."
                 }
             }
         }
 
-        stage("Push Docker Image frontend") {
+        stage("Push Docker Image Frontend") {
             steps {
-                dir("Pep3/Frontend") {
-                    withCredentials([string(credentialsId: 'dckrhubpassword', variable: 'dckpass')]) {
-                        bat "docker login -u derflinger -p ${dckpass}"
-                        bat "docker push derflinger/pep2devsecops_frontend"
-                    }
+                dir("Frontend") {
+                    bat "docker login -u niko085 -p Nico"
+                    bat "docker push niko085/pep2devsecops_frontend"
                 }
             }
         }
 
-        stage("Deploy Backend with Docker Compose") {
+        stage("Deploy Backend") {
             steps {
-                dir("Pep3/LAB-TBD") {
-                    bat "docker-compose down -v || exit 0"
-                    bat "docker-compose up -d --build"
-                }
-            }
-        }
-        
-        stage("Deploy Frontend with Docker Compose") {
-            steps {
-                dir("Pep3/Frontend") {
+                dir("LAB-TBD") {
                     bat "docker-compose down || exit 0"
                     bat "docker-compose up -d --build"
                 }
             }
         }
-        
-        stage("Publicar HTML SpotBugs") {
+
+        stage("Deploy Frontend") {
             steps {
-                publishHTML([
-                    reportName: 'SpotBugs HTML Report',
-                    reportDir: 'Pep3/LAB-TBD/target/spotbugs-html',
-                    reportFiles: 'index.html',
-                    keepAll: true,
-                    alwaysLinkToLastBuild: true,
-                    allowMissing: true
-                ])
-            }
-        }
-        
-        stage("Verificar Monitoreo") {
-            steps {
-                script {
-                    // Esperar a que los servicios estén listos
-                    sleep(30)
-                    
-                    // Verificar el estado de los contenedores
-                    bat "docker ps -a"
-                    
-                    // Verificar logs de la aplicación
-                    bat "docker logs pep2devsecops_backend --tail 50 || echo 'No se pueden obtener logs de la aplicación'"
-                    
-                    // Verificar que Prometheus esté funcionando
-                    bat "curl -f http://localhost:9090/-/healthy || echo 'Prometheus no está respondiendo'"
-                    
-                    // Verificar que Grafana esté funcionando
-                    bat "curl -f http://localhost:3001/api/health || echo 'Grafana no está respondiendo'"
-                    
-                    // Verificar que la aplicación esté exponiendo health check
-                    bat "curl -f http://localhost:8097/actuator/health || echo 'Health check de la aplicación no disponible'"
-                    
-                    // Verificar que la aplicación esté exponiendo métricas
-                    bat "curl -f http://localhost:8097/actuator/prometheus || echo 'Métricas de la aplicación no disponibles'"
-                    
-                    // Verificar que la aplicación esté exponiendo info
-                    bat "curl -f http://localhost:8097/actuator/info || echo 'Info de la aplicación no disponible'"
+                dir("Frontend") {
+                    bat "docker-compose down || exit 0"
+                    bat "docker-compose up -d --build"
                 }
             }
         }
@@ -169,28 +101,6 @@ pipeline {
     post {
         always {
             bat "docker logout"
-            recordIssues tools: [spotBugs(pattern: 'Pep3/**/spotbugsXml.xml')]
-            
-            // Limpiar contenedores si el build falla
-            script {
-                if (currentBuild.result == 'FAILURE') {
-                    dir("Pep3/LAB-TBD") {
-                        bat "docker-compose down -v || exit 0"
-                    }
-                    dir("Pep3/Frontend") {
-                        bat "docker-compose down || exit 0"
-                    }
-                }
-            }
-        }
-        success {
-            echo "Pipeline completado exitosamente. Servicios disponibles:"
-            echo "- Backend: http://localhost:8097"
-            echo "- Frontend: http://localhost:3000"
-            echo "- Prometheus: http://localhost:9090"
-            echo "- Grafana: http://localhost:3001 (admin/admin)"
-            echo "- Node Exporter: http://localhost:9100"
-            echo "- Postgres Exporter: http://localhost:9187"
         }
     }
 }

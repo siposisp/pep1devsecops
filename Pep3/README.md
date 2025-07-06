@@ -1,214 +1,79 @@
-# Pep3 - Sistema de Monitoreo Completo con Grafana y Prometheus
+# Lab2TBD-1-2024 . README
+Este proyecto es un sistema de gestión de emergencias que permite la coordinación entre voluntarios y coordinadores para responder eficazmente a situaciones de emergencia. Para esta segunda entrega se agregaron recursos de localización con la herramienta postGIS.
 
-Este proyecto incluye una aplicación Spring Boot completa con un sistema de monitoreo integrado usando Grafana y Prometheus, además de un pipeline de Jenkins automatizado.
+## Características principales
 
-## 🏗️ Arquitectura del Sistema
+- Registro y gestión de voluntarios.
+- Asignación de tareas a voluntarios por parte de los coordinadores.
+- Seguimiento en tiempo real del estado de las tareas asignadas.
+- Generación de reportes de actividad y desempeño.
 
+## Tecnologías utilizadas
+
+- Java (JDK 17)
+- Spring Boot
+- PostgreSQL 
+- PostGIS
+
+## Instalación
+
+### Requisitos previos
+
+- JDK 8 o superior (hasta JDK 17) instalado
+- Maven
+- PostgreSQL Server
+- PostGIS
+
+### Pasos para la instalación
+
+#### Backend
+1. Clona el repositorio a tu máquina local.
+2. Crea una base de datos PostgreSQL con el nombre `LabTBD-2-2024`.
+3. Abrir y configurar PostGis con las credneciales de Postgres y el nombre de la base de dato. 
+4. Ejecutar los script .sql en la carpeta "Database" en el siguiente orden: dbCreateV2, dbTriggersV2, dbProceduresV2, dbloadDataV2.
+5. Abre el proyecto en tu IDE preferido (por ejemplo, IntelliJ IDEA, Eclipse).
+6. Configura las credenciales de la base de datos en el archivo `application.properties` ubicado en `src/main/resources/`.
+7. Ejecuta la aplicación. La aplicación estará disponible en [http://localhost:8090](http://localhost:8090).
+#### Frontend
+1. Con el repositorio clonado, ir a a la carpeta Frontend.
+2. Instalar los paquetes necesarios usando npm (Instalar node de ser necesario).
 ```
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   Frontend      │    │   Backend       │    │   Database      │
-│   (Vue.js)      │◄──►│   (Spring Boot) │◄──►│   (PostgreSQL)  │
-│   Port: 3000    │    │   Port: 8097    │    │   Port: 5432    │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
-                                │
-                                ▼
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   Prometheus    │◄──►│   Grafana       │    │   Node Exporter │
-│   Port: 9090    │    │   Port: 3001    │    │   Port: 9100    │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
-                                │
-                                ▼
-                       ┌─────────────────┐
-                       │ Postgres Exporter│
-                       │   Port: 9187    │
-                       └─────────────────┘
+npm i
 ```
-
-## 🚀 Servicios Incluidos
-
-### Aplicación Principal
-- **Backend**: Spring Boot con Actuator y Micrometer
-- **Frontend**: Vue.js con Vite
-- **Database**: PostgreSQL
-
-### Monitoreo
-- **Prometheus**: Recolector de métricas
-- **Grafana**: Visualización de métricas
-- **Node Exporter**: Métricas del sistema
-- **Postgres Exporter**: Métricas de PostgreSQL
-
-## 📋 Requisitos Previos
-
-- Docker y Docker Compose
-- Java 17
-- Node.js 18+
-- Maven 3.8+
-- Jenkins (para el pipeline)
-
-## 🛠️ Instalación y Configuración
-
-### 1. Clonar el Repositorio
-```bash
-git clone https://github.com/siposisp/pep1devsecops.git
-cd pep1devsecops/Pep3
+3. Crear un archivo .env en esta carpeta y agregar lo siguiente, remplazando LLAVE_API_DE_GOOGLE por su propia llave.
 ```
-
-### 2. Configurar Credenciales de Jenkins
-En Jenkins, crear las siguientes credenciales:
-- **ID**: `dckrhubpassword`
-- **Tipo**: Secret text
-- **Descripción**: Docker Hub Password
-
-### 3. Ejecutar el Pipeline de Jenkins
-1. Crear un nuevo job en Jenkins
-2. Configurar como "Pipeline"
-3. Usar el archivo `jenkinsFile` del repositorio
-4. Ejecutar el pipeline
-
-## 🔧 Configuración Manual (Sin Jenkins)
-
-### Backend
-```bash
-cd LAB-TBD
-mvn clean install
-mvn spring-boot:run
+VITE_GOOGLE_API = LLAVE_API_DE_GOOGLE
 ```
-
-### Frontend
-```bash
-cd Frontend
-npm install
+4. Ejecutar el frontend con el siguiente comando.
+```
 npm run dev
 ```
+5. La aplicación estará disponible en [http://localhost:5173](http://localhost:5173).
 
-### Con Docker Compose
-```bash
-# Backend con monitoreo completo
-cd LAB-TBD
-docker-compose up -d
 
-# Frontend
-cd Frontend
-docker-compose up -d
-```
+## Uso
 
-## 📊 Acceso a los Servicios
+1. Ejecuta el backend y el frontend de la aplicación en tus editores de código favoritos.
+2. Accede a la aplicación desde tu navegador web.
+3. Inicia sesión como coordinador o voluntario según corresponda.
+4. Explora las diferentes funcionalidades ofrecidas por el sistema, como registro de voluntarios, asignación de tareas, seguimiento de tareas, etc.
+5. ¡Comienza a utilizar el sistema para gestionar emergencias de manera eficiente!
 
-Una vez desplegado, los servicios estarán disponibles en:
+## Contribución
 
-| Servicio | URL | Credenciales |
-|----------|-----|--------------|
-| **Frontend** | http://localhost:3000 | - |
-| **Backend** | http://localhost:8097 | - |
-| **Grafana** | http://localhost:3001 | admin/admin |
-| **Prometheus** | http://localhost:9090 | - |
-| **Node Exporter** | http://localhost:9100 | - |
-| **Postgres Exporter** | http://localhost:9187 | - |
+Las contribuciones son bienvenidas. Si deseas contribuir al desarrollo de este proyecto, por favor sigue estos pasos:
 
-## 📈 Métricas Disponibles
+1. Haz un fork del repositorio.
+2. Crea una rama para tu funcionalidad (`git checkout -b feature/AmazingFeature`).
+3. Realiza tus cambios.
+4. Haz commit de tus cambios (`git commit -m 'Add some AmazingFeature'`).
+5. Haz push a la rama (`git push origin feature/AmazingFeature`).
+6. Abre un pull request.
 
-### Spring Boot Actuator
-- **Health Check**: `/actuator/health`
-- **Métricas Prometheus**: `/actuator/prometheus`
-- **Info**: `/actuator/info`
-- **Métricas Generales**: `/actuator/metrics`
+## Soporte
 
-### Métricas Monitoreadas
-- **HTTP Request Rate**: Tasa de peticiones HTTP
-- **Average Response Time**: Tiempo promedio de respuesta
-- **JVM Memory Usage**: Uso de memoria de la JVM
-- **PostgreSQL Transactions**: Transacciones de base de datos
-- **System Metrics**: Métricas del sistema operativo
+Para obtener ayuda o reportar problemas, por favor contacta al equipo de desarrollo.
 
-## 🔍 Análisis de Calidad
+## Licencia
 
-El pipeline incluye:
-
-### SpotBugs
-- Análisis estático de código Java
-- Detección de bugs potenciales
-- Reporte HTML disponible en Jenkins
-
-### SonarQube
-- Análisis de calidad de código
-- Métricas de cobertura
-- Detección de code smells
-- Vulnerabilidades de seguridad
-
-## 🐳 Docker Images
-
-Las imágenes se construyen y publican en Docker Hub:
-- `derflinger/pep2devsecops_backend`
-- `derflinger/pep2devsecops_frontend`
-
-## 📝 Pipeline de Jenkins
-
-El pipeline automatiza:
-
-1. **Checkout**: Clonar código del repositorio
-2. **Build Backend**: Compilar aplicación Spring Boot
-3. **Test Backend**: Ejecutar pruebas unitarias
-4. **SpotBugs Analysis**: Análisis estático
-5. **SonarQube Analysis**: Análisis de calidad
-6. **Build Docker Images**: Construir imágenes
-7. **Push Docker Images**: Publicar en Docker Hub
-8. **Build Frontend**: Compilar aplicación Vue.js
-9. **Deploy**: Desplegar con Docker Compose
-10. **Verificar Monitoreo**: Comprobar servicios
-
-## 🔧 Configuración de Grafana
-
-### Dashboards Incluidos
-- **Spring Boot Application Dashboard**: Métricas de la aplicación
-- **System Metrics**: Métricas del sistema
-- **PostgreSQL Metrics**: Métricas de base de datos
-
-### Configuración Automática
-- Datasource de Prometheus configurado automáticamente
-- Dashboards provisionados al iniciar Grafana
-
-## 🚨 Troubleshooting
-
-### Problemas Comunes
-
-1. **Prometheus no puede conectar con la aplicación**
-   - Verificar que el puerto 8097 esté expuesto
-   - Comprobar que Actuator esté habilitado
-
-2. **Grafana no muestra datos**
-   - Verificar que Prometheus esté funcionando
-   - Comprobar la configuración del datasource
-
-3. **Docker Compose falla**
-   - Verificar que los puertos no estén en uso
-   - Comprobar permisos de Docker
-
-### Logs Útiles
-```bash
-# Ver logs de todos los servicios
-docker-compose logs -f
-
-# Ver logs específicos
-docker-compose logs -f app
-docker-compose logs -f prometheus
-docker-compose logs -f grafana
-```
-
-## 📚 Recursos Adicionales
-
-- [Spring Boot Actuator Documentation](https://docs.spring.io/spring-boot/docs/current/reference/html/actuator.html)
-- [Prometheus Documentation](https://prometheus.io/docs/)
-- [Grafana Documentation](https://grafana.com/docs/)
-- [Micrometer Documentation](https://micrometer.io/docs)
-
-## 🤝 Contribución
-
-1. Fork el proyecto
-2. Crear una rama para tu feature
-3. Commit tus cambios
-4. Push a la rama
-5. Abrir un Pull Request
-
-## 📄 Licencia
-
-Este proyecto está bajo la Licencia MIT. Ver el archivo `LICENSE` para más detalles.
+Este proyecto está bajo la Licencia MIT. Consulta el archivo `LICENSE` para más detalles.

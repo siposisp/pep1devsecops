@@ -83,12 +83,12 @@
       <version>0.10-2.5-1</version>
     </dependency>
     <dependency>
-      <groupId>org.hibernate.orm</groupId>
+      <groupId>org.hibernate</groupId>
       <artifactId>hibernate-core</artifactId>
       <version>6.5.0.Final</version>
     </dependency>
     <dependency>
-      <groupId>org.hibernate.orm</groupId>
+      <groupId>org.hibernate</groupId>
       <artifactId>hibernate-spatial</artifactId>
       <version>6.5.0.Final</version>
     </dependency>
@@ -124,22 +124,6 @@
       <version>5.9.0</version> <!-- Updated JUnit Jupiter version -->
       <scope>test</scope>
     </dependency>
-    <!-- Spring Boot Actuator para monitoreo -->
-    <dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-starter-actuator</artifactId>
-    </dependency>
-    <!-- Micrometer para Prometheus -->
-    <dependency>
-      <groupId>io.micrometer</groupId>
-      <artifactId>micrometer-registry-prometheus</artifactId>
-    </dependency>
-    <!-- H2 Database para tests -->
-    <dependency>
-      <groupId>com.h2database</groupId>
-      <artifactId>h2</artifactId>
-      <scope>test</scope>
-    </dependency>
   </dependencies>
 
   <build>
@@ -159,9 +143,6 @@
         <version>3.0.0</version> <!-- Updated Surefire plugin version -->
         <configuration>
           <useModulePath>false</useModulePath>
-          <skipTests>false</skipTests>
-          <testFailureIgnore>true</testFailureIgnore>
-          <argLine>-Dspring.profiles.active=test</argLine>
         </configuration>
       </plugin>
       <plugin>
@@ -187,7 +168,7 @@
       <plugin>
         <groupId>com.github.spotbugs</groupId>
         <artifactId>spotbugs-maven-plugin</artifactId>
-        <version>4.5.3.0</version>
+        <version>4.7.3.0</version>
         <executions>
           <execution>
             <phase>verify</phase> <!-- Ejecuta automáticamente al hacer mvn verify -->
