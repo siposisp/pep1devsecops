@@ -1,0 +1,50 @@
+version: '3.8'
+
+networks:
+  security-network:
+    driver: bridge
+
+services:
+  # OWASP Dependency Check
+  dependency-check:
+    image: owasp/dependency-check:latest
+    container_name: pep3_dependency_check
+    volumes:
+      - ./LAB-TBD:/src/backend
+      - ./Frontend:/src/frontend
+      - ./security-reports:/reports
+    environment:
+      - NVD_API_KEY=bc4587bd-a2ed-47fa-8db2-6622440565e2
+    networks:
+      - security-network
+    profiles:
+      - security-scan
+
+  # OWASP ZAP
+  zap:
+    image: owasp/zap2docker-stable:latest
+    container_name: pep3_zap
+    volumes:
+      - ./security-reports:/zap/reports
+    environment:
+      - ZAP_ALERT_LEVEL=Medium
+    networks:
+      - security-network
+    profiles:
+      - security-scan
+
+  # OWASP ZAP Baseline (para escaneo automático)
+  zap-baseline:
+    image: owasp/zap2docker-stable:latest
+    container_name: pep3_zap_baseline
+    volumes:
+      - ./security-reports:/zap/reports
+    environment:
+      - ZAP_ALERT_LEVEL=Medium
+    networks:
+      - security-network
+    profiles:
+      - security-scan
+
+volumes:
+  security-reports: 

@@ -5,6 +5,13 @@ pipeline {
         maven "maven"
     }
     
+    environment {
+        NVD_API_KEY = 'bc4587bd-a2ed-47fa-8db2-6622440565e2'
+        FRONTEND_URL = 'http://localhost:3000'
+        BACKEND_URL = 'http://localhost:8097'
+        BACKEND_HEALTH_URL = 'http://localhost:8097/actuator/health'
+    }
+    
     stages {
         stage("Checkout") {
             steps {
@@ -19,6 +26,22 @@ pipeline {
             steps {
                 dir("Pep3/LAB-TBD") {
                     bat "mvn clean install"
+                }
+            }
+        }
+
+        // Análisis de dependencias del backend usando el plugin de Maven (más eficiente)
+        stage('OWASP Dependency Check Backend') {
+            steps {
+                dir('Pep3/LAB-TBD') {
+                    bat '''
+                        mvn org.owasp:dependency-check-maven:check ^
+                            -Dformats=HTML,JSON,XML ^
+                            -DfailOnCVSS=7 ^
+                            -DskipProvidedScope=false ^
+                            -DskipRuntimeScope=false ^
+                            -DskipTestScope=false
+                    '''
                 }
             }
         }
@@ -47,6 +70,38 @@ pipeline {
             }
         }
 
+        stage("Build Frontend") {
+            steps {
+                dir("Pep3/Frontend") {
+                    bat "npm install"
+                    bat "npm run build"
+                }
+            }
+        }
+
+        // Análisis de dependencias del frontend usando Docker (mejor para Node.js)
+        stage('OWASP Dependency Check Frontend') {
+            steps {
+                dir('Pep3/Frontend') {
+                    // Asegurar que package-lock.json existe
+                    bat "npm install"
+                    
+                    // Ejecutar Dependency Check con Docker
+                    bat '''
+                        docker run --rm ^
+                            -e NVD_API_KEY=%NVD_API_KEY% ^
+                            -v %cd%:/src ^
+                            owasp/dependency-check:latest ^
+                            --project pep3-frontend ^
+                            --scan /src ^
+                            --format HTML,JSON,XML ^
+                            --out /src ^
+                            --failOnCVSS 7
+                    '''
+                }
+            }
+        }
+
         stage("Build Docker Image Backend") {
             steps {
                 dir("Pep3/LAB-TBD") {
@@ -60,15 +115,6 @@ pipeline {
                 withCredentials([string(credentialsId: 'dckrhubpassword', variable: 'dckpass')]) {
                     bat "docker login -u derflinger -p ${dckpass}"
                     bat "docker push derflinger/pep3devsecops_backend"
-                }
-            }
-        }
-
-        stage("Build Frontend") {
-            steps {
-                dir("Pep3/Frontend") {
-                    bat "npm install"
-                    bat "npm run build"
                 }
             }
         }
@@ -90,20 +136,50 @@ pipeline {
             }
         }
 
-        stage("Deploy Backend") {
+        stage("Deploy Application") {
             steps {
-                dir("Pep3/LAB-TBD") {
-                    bat "docker-compose down 2>nul || exit 0"
-                    bat "docker-compose up -d --build"
+                bat "docker-compose down 2>nul || exit 0"
+                bat "docker-compose up -d --build"
+                
+                // Esperar a que la aplicación esté disponible
+                script {
+                    timeout(time: 5, unit: 'MINUTES') {
+                        waitUntil {
+                            try {
+                                // Verificar frontend (puerto 3000)
+                                sh 'curl -f %FRONTEND_URL% >/dev/null 2>&1'
+                                // Verificar backend (puerto 8097)
+                                sh 'curl -f %BACKEND_HEALTH_URL% >/dev/null 2>&1'
+                                return true
+                            } catch (Exception e) {
+                                echo "Esperando a que la aplicación esté disponible..."
+                                echo "Frontend: %FRONTEND_URL%"
+                                echo "Backend: %BACKEND_HEALTH_URL%"
+                                sleep(10)
+                                return false
+                            }
+                        }
+                    }
                 }
             }
         }
 
-        stage("Deploy Frontend") {
+        // Escaneo dinámico con OWASP ZAP Baseline (equilibrio entre velocidad y cobertura)
+        stage('OWASP ZAP Security Scan') {
             steps {
-                dir("Pep3/Frontend") {
-                    bat "docker-compose down 2>nul || exit 0"
-                    bat "docker-compose up -d --build"
+                script {
+                    bat "mkdir zap-reports 2>nul || exit 0"
+                    
+                    // ZAP Baseline Scan - mejor opción: rápido pero efectivo
+                    bat '''
+                        docker run --rm ^
+                            -v %cd%/zap-reports:/zap/reports ^
+                            -t owasp/zap2docker-stable:latest ^
+                            zap-baseline.py ^
+                            -t %FRONTEND_URL% ^
+                            -r zap-security-report.html ^
+                            -I
+                    '''
                 }
             }
         }
@@ -116,11 +192,81 @@ pipeline {
                 }
             }
         }
+        
+        // Generar reporte consolidado de seguridad
+        stage('Generate Security Report') {
+            steps {
+                script {
+                    def reportContent = """
+# Reporte de Seguridad PEP3 DevSecOps
+
+Fecha: ${new Date().format("yyyy-MM-dd HH:mm:ss")}
+Build: ${env.BUILD_NUMBER}
+
+## Configuración de Puertos
+- **Frontend**: ${env.FRONTEND_URL} (puerto 3000)
+- **Backend**: ${env.BACKEND_URL} (puerto 8097)
+- **Backend Health**: ${env.BACKEND_HEALTH_URL}
+
+## Resumen de Escaneos
+
+### OWASP Dependency Check
+- **Backend**: dependency-check-report.html (plugin Maven)
+- **Frontend**: dependency-check-report-frontend.html (Docker)
+
+### OWASP ZAP
+- **Security Scan**: zap-security-report.html (Baseline Scan)
+- **Target**: ${env.FRONTEND_URL}
+
+## Instrucciones para revisar reportes
+
+1. Abre los archivos HTML en tu navegador
+2. Revisa las vulnerabilidades encontradas
+3. Prioriza las vulnerabilidades con CVSS alto (7+)
+4. Actualiza las dependencias vulnerables
+5. Considera agregar supresiones en owasp-suppressions.xml para falsos positivos
+
+## Próximos pasos
+
+1. Revisar y corregir vulnerabilidades críticas
+2. Actualizar dependencias vulnerables
+3. Implementar medidas de mitigación
+4. Re-ejecutar escaneos después de las correcciones
+"""
+                    
+                    writeFile file: 'security-report.md', text: reportContent
+                }
+            }
+        }
     }
 
     post {
         always {
+            // Archivar reportes de seguridad
+            archiveArtifacts artifacts: '**/dependency-check-report-*.html', allowEmptyArchive: true
+            archiveArtifacts artifacts: '**/dependency-check-report-*.json', allowEmptyArchive: true
+            archiveArtifacts artifacts: 'zap-reports/*.html', allowEmptyArchive: true
+            archiveArtifacts artifacts: 'security-report.md', allowEmptyArchive: true
+            
             bat "docker logout"
+            
+            script {
+                echo "=== RESUMEN DE ESCANEOS DE SEGURIDAD ==="
+                echo "Build: ${env.BUILD_NUMBER}"
+                echo "Fecha: ${new Date().format("yyyy-MM-dd HH:mm:ss")}"
+                echo "Frontend: ${env.FRONTEND_URL}"
+                echo "Backend: ${env.BACKEND_URL}"
+                echo "Reportes disponibles en los artifacts del build"
+                echo "================================================"
+            }
+        }
+        
+        success {
+            echo "✅ Pipeline completado exitosamente"
+        }
+        
+        failure {
+            echo "❌ Pipeline falló - Revisar logs para más detalles"
         }
     }
 } 

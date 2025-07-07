@@ -191,6 +191,34 @@
           <includeTests>false</includeTests>
         </configuration>
       </plugin>
+      
+      <!-- OWASP Dependency Check Plugin -->
+      <plugin>
+        <groupId>org.owasp</groupId>
+        <artifactId>dependency-check-maven</artifactId>
+        <version>8.4.3</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>check</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <formats>
+            <format>HTML</format>
+            <format>JSON</format>
+            <format>XML</format>
+          </formats>
+          <failOnCVSS>7</failOnCVSS>
+          <skipProvidedScope>false</skipProvidedScope>
+          <skipRuntimeScope>false</skipRuntimeScope>
+          <skipTestScope>false</skipTestScope>
+          <suppressionFiles>
+            <suppressionFile>owasp-suppressions.xml</suppressionFile>
+          </suppressionFiles>
+        </configuration>
+      </plugin>
     </plugins>
   </build>
 
