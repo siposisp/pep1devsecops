@@ -1,5 +1,3 @@
-version: "3.8"
-
 services:
   prometheus:
     image: prom/prometheus:latest
@@ -35,19 +33,6 @@ services:
     restart: always
     networks:
       - monitoring
-
-  node-exporter:
-    image: prom/node-exporter:latest
-    container_name: pep3_node_exporter
-    ports:
-      - "9100:9100"
-    command:
-      - '--path.rootfs=/host'
-    network_mode: host
-    pid: host
-    restart: always
-    volumes:
-      - '/:/host:ro,rslave'
 
 networks:
   monitoring:
