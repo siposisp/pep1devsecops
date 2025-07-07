@@ -2,8 +2,8 @@ version: "3.8"
 
 services:
   app:
-    container_name: pep2devsecops_backend
-    image: derflinger/pep2devsecops_backend
+    container_name: pep3devsecops_backend
+    image: derflinger/pep3devsecops_backend
     ports:
       - "8097:8097"
     environment:
@@ -21,6 +21,7 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
+      start_period: 40s
 
 # Ya no necesitamos el contenedor de PostgreSQL ni volúmenes
 # volumes:
