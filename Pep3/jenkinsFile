@@ -90,16 +90,10 @@ pipeline {
             }
         }
 
-        stage("Create Docker Network") {
-            steps {
-                bat "docker network create pep3-network || echo Network already exists"
-            }
-        }
-
         stage("Deploy Backend") {
             steps {
                 dir("Pep3/LAB-TBD") {
-                    bat "docker-compose down || exit 0"
+                    bat "docker-compose down 2>nul || exit 0"
                     bat "docker-compose up -d --build"
                 }
             }
@@ -108,7 +102,7 @@ pipeline {
         stage("Deploy Frontend") {
             steps {
                 dir("Pep3/Frontend") {
-                    bat "docker-compose down || exit 0"
+                    bat "docker-compose down 2>nul || exit 0"
                     bat "docker-compose up -d --build"
                 }
             }
