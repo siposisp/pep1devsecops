@@ -83,18 +83,19 @@ pipeline {
         stage('OWASP Dependency Check Frontend') {
             steps {
                 dir('Pep3/Frontend') {
-                    // Asegurar que package-lock.json existe
                     bat "npm install"
                     
-                    // Ejecutar Dependency Check con Docker
+                    // Ejecutar Dependency Check con Docker usando --nvdApiKey y sin volumen de caché
                     bat '''
                         docker run --rm ^
-                            -e NVD_API_KEY=%NVD_API_KEY% ^
                             -v %cd%:/src ^
                             owasp/dependency-check:latest ^
+                            --nvdApiKey bc4587bd-a2ed-47fa-8db2-6622440565e2 ^
                             --project pep3-frontend ^
                             --scan /src ^
-                            --format HTML,JSON,XML ^
+                            --format HTML ^
+                            --format JSON ^
+                            --format XML ^
                             --out /src ^
                             --failOnCVSS 7
                     '''
@@ -136,25 +137,35 @@ pipeline {
             }
         }
 
-        stage("Deploy Application") {
+        stage("Deploy Backend") {
             steps {
-                bat "docker-compose down 2>nul || exit 0"
-                bat "docker-compose up -d --build"
-                
-                // Esperar a que la aplicación esté disponible
+                dir("Pep3/LAB-TBD") {
+                    bat "docker-compose down 2>nul || exit 0"
+                    bat "docker-compose up -d --build"
+                }
+            }
+        }
+
+        stage("Deploy Frontend") {
+            steps {
+                dir("Pep3/Frontend") {
+                    bat "docker-compose down 2>nul || exit 0"
+                    bat "docker-compose up -d --build"
+                }
+            }
+        }
+
+        stage("Wait for Application") {
+            steps {
                 script {
                     timeout(time: 5, unit: 'MINUTES') {
                         waitUntil {
                             try {
-                                // Verificar frontend (puerto 3000)
-                                sh 'curl -f %FRONTEND_URL% >/dev/null 2>&1'
-                                // Verificar backend (puerto 8097)
-                                sh 'curl -f %BACKEND_HEALTH_URL% >/dev/null 2>&1'
+                                sh 'curl -f http://localhost:3000/health >/dev/null 2>&1'
+                                sh 'curl -f http://localhost:8097/emergencies/all >/dev/null 2>&1'
                                 return true
                             } catch (Exception e) {
                                 echo "Esperando a que la aplicación esté disponible..."
-                                echo "Frontend: %FRONTEND_URL%"
-                                echo "Backend: %BACKEND_HEALTH_URL%"
                                 sleep(10)
                                 return false
                             }
@@ -167,16 +178,19 @@ pipeline {
         // Escaneo dinámico con OWASP ZAP Baseline (equilibrio entre velocidad y cobertura)
         stage('OWASP ZAP Security Scan') {
             steps {
+                withCredentials([string(credentialsId: 'dckrhubpassword', variable: 'dckpass')]) {
+                    bat "docker login -u derflinger -p %dckpass%"
+                }
                 script {
                     bat "mkdir zap-reports 2>nul || exit 0"
                     
                     // ZAP Baseline Scan - mejor opción: rápido pero efectivo
                     bat '''
                         docker run --rm ^
-                            -v %cd%/zap-reports:/zap/reports ^
-                            -t owasp/zap2docker-stable:latest ^
+                            -v %cd%/zap-reports:/zap/wrk ^
+                            ghcr.io/zaproxy/zaproxy:stable ^
                             zap-baseline.py ^
-                            -t %FRONTEND_URL% ^
+                            -t http://host.docker.internal:3000 ^
                             -r zap-security-report.html ^
                             -I
                     '''
