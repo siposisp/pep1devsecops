@@ -107,6 +107,15 @@ pipeline {
                 }
             }
         }
+
+        stage("Deploy Monitoring Stack") {
+            steps {
+                dir("Pep3/monitoring") {
+                    bat "docker-compose down 2>nul || exit 0"
+                    bat "docker-compose up -d --build"
+                }
+            }
+        }
     }
 
     post {
